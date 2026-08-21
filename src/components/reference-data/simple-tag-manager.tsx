@@ -1,0 +1,65 @@
+type Item = { id: string; name: string };
+
+export function SimpleTagManager({
+  items,
+  createAction,
+  deactivateAction,
+  title,
+  description,
+  label,
+  placeholder,
+}: {
+  items: Item[];
+  createAction: (formData: FormData) => Promise<void>;
+  deactivateAction: (formData: FormData) => Promise<void>;
+  title: string;
+  description: string;
+  label: string;
+  placeholder: string;
+}) {
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+
+      <form action={createAction} className="flex gap-2">
+        <input
+          name="name"
+          placeholder={placeholder}
+          required
+          className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+        >
+          Add {label}
+        </button>
+      </form>
+
+      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+        {items.length === 0 && (
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            No {label.toLowerCase()}s yet.
+          </div>
+        )}
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center justify-between px-4 py-3">
+            <span className="text-sm font-medium">{item.name}</span>
+            <form action={deactivateAction}>
+              <input type="hidden" name="id" value={item.id} />
+              <button
+                type="submit"
+                className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+              >
+                Remove
+              </button>
+            </form>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

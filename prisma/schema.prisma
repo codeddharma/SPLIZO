@@ -129,6 +129,7 @@ model Account {
   type        AccountType
   institution String?
   last4       String?
+  isActive    Boolean     @default(true)
 
   transactions Transaction[]
 

@@ -1,13 +1,20 @@
-import { Wallet } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { prisma } from "@/lib/prisma";
+import { getHouseholdId } from "@/lib/session";
+import { createAccountAction, deactivateAccountAction } from "@/lib/actions/reference-data-actions";
+import { AccountManager } from "@/components/reference-data/account-manager";
 
-export default function AccountsPage() {
+export default async function AccountsPage() {
+  const householdId = await getHouseholdId();
+  const accounts = await prisma.account.findMany({
+    where: { householdId, isActive: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
-    <ComingSoon
-      icon={Wallet}
-      title="Accounts"
-      description="Every bank account, credit card, and wallet you use — added once, tagged on every transaction."
-      phase="Phase 4"
+    <AccountManager
+      accounts={accounts}
+      createAction={createAccountAction}
+      deactivateAction={deactivateAccountAction}
     />
   );
 }

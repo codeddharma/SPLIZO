@@ -1,0 +1,109 @@
+type VendorRule = {
+  id: string;
+  matchText: string;
+  matchType: "exact" | "contains";
+  source: "user_defined" | "learned";
+  category: { name: string };
+};
+
+type Category = { id: string; name: string };
+
+export function VendorRuleManager({
+  vendorRules,
+  categories,
+  createAction,
+  deleteAction,
+}: {
+  vendorRules: VendorRule[];
+  categories: Category[];
+  createAction: (formData: FormData) => Promise<void>;
+  deleteAction: (formData: FormData) => Promise<void>;
+}) {
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Vendor rules</h1>
+        <p className="text-sm text-muted-foreground">
+          If a transaction description matches this text, auto-assign the category.
+        </p>
+      </div>
+
+      <form
+        action={createAction}
+        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
+      >
+        <div className="flex flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold text-muted-foreground">Match text</label>
+          <input
+            name="matchText"
+            placeholder="e.g. SWIGGY"
+            required
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-muted-foreground">Match type</label>
+          <select
+            name="matchType"
+            required
+            defaultValue="contains"
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="contains">Contains</option>
+            <option value="exact">Exact</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-muted-foreground">Category</label>
+          <select
+            name="categoryId"
+            required
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="submit"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+        >
+          Add
+        </button>
+      </form>
+
+      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+        {vendorRules.length === 0 && (
+          <div className="p-6 text-center text-sm text-muted-foreground">No vendor rules yet.</div>
+        )}
+        {vendorRules.map((rule) => (
+          <div key={rule.id} className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">{rule.matchText}</span>
+              <span className="text-muted-foreground">({rule.matchType})</span>
+              <span className="text-muted-foreground">→</span>
+              <span className="font-medium text-primary">{rule.category.name}</span>
+              {rule.source === "learned" && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  learned
+                </span>
+              )}
+            </div>
+            <form action={deleteAction}>
+              <input type="hidden" name="id" value={rule.id} />
+              <button
+                type="submit"
+                className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+              >
+                Remove
+              </button>
+            </form>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

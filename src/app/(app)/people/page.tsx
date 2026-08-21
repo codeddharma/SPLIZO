@@ -1,13 +1,27 @@
-import { Users } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { prisma } from "@/lib/prisma";
+import { getHouseholdId } from "@/lib/session";
+import {
+  createPersonTagAction,
+  deactivatePersonTagAction,
+} from "@/lib/actions/reference-data-actions";
+import { SimpleTagManager } from "@/components/reference-data/simple-tag-manager";
 
-export default function PeoplePage() {
+export default async function PeoplePage() {
+  const householdId = await getHouseholdId();
+  const people = await prisma.personTag.findMany({
+    where: { householdId, isActive: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
-    <ComingSoon
-      icon={Users}
+    <SimpleTagManager
+      items={people}
+      createAction={createPersonTagAction}
+      deactivateAction={deactivatePersonTagAction}
       title="People"
-      description="Person tags — you, your spouse, joint, even 'Mom' or 'Dad' — decoupled from login accounts."
-      phase="Phase 4"
+      description="You, your spouse, joint, even 'Mom' or 'Dad' — decoupled from login accounts."
+      label="Person"
+      placeholder="e.g. Mom"
     />
   );
 }

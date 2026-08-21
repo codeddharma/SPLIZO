@@ -1,13 +1,24 @@
-import { Home as HomeIcon } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { prisma } from "@/lib/prisma";
+import { getHouseholdId } from "@/lib/session";
+import { createHomeAction, deactivateHomeAction } from "@/lib/actions/reference-data-actions";
+import { SimpleTagManager } from "@/components/reference-data/simple-tag-manager";
 
-export default function HomesPage() {
+export default async function HomesPage() {
+  const householdId = await getHouseholdId();
+  const homes = await prisma.home.findMany({
+    where: { householdId, isActive: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
-    <ComingSoon
-      icon={HomeIcon}
+    <SimpleTagManager
+      items={homes}
+      createAction={createHomeAction}
+      deactivateAction={deactivateHomeAction}
       title="Homes"
-      description="Rented, owned, parents' — a fully custom list of homes you can tag any transaction against."
-      phase="Phase 4"
+      description="Rented, owned, parents' — tag any transaction against one of these."
+      label="Home"
+      placeholder="e.g. Rented Home"
     />
   );
 }

@@ -1,13 +1,28 @@
-import { Sparkles } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { prisma } from "@/lib/prisma";
+import { getHouseholdId } from "@/lib/session";
+import { createVendorRuleAction, deleteVendorRuleAction } from "@/lib/actions/reference-data-actions";
+import { VendorRuleManager } from "@/components/reference-data/vendor-rule-manager";
 
-export default function VendorRulesPage() {
+export default async function VendorRulesPage() {
+  const householdId = await getHouseholdId();
+  const [vendorRules, categories] = await Promise.all([
+    prisma.vendorRule.findMany({
+      where: { householdId },
+      include: { category: { select: { name: true } } },
+      orderBy: { matchText: "asc" },
+    }),
+    prisma.category.findMany({
+      where: { householdId, isActive: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
   return (
-    <ComingSoon
-      icon={Sparkles}
-      title="Vendor rules"
-      description="Rules that map a vendor's description text to a category — defined manually or learned automatically from corrections."
-      phase="Phase 4 / 8"
+    <VendorRuleManager
+      vendorRules={vendorRules}
+      categories={categories}
+      createAction={createVendorRuleAction}
+      deleteAction={deleteVendorRuleAction}
     />
   );
 }

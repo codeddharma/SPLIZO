@@ -1,13 +1,21 @@
-import { Tags } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { prisma } from "@/lib/prisma";
+import { getHouseholdId } from "@/lib/session";
+import { createCategoryAction, deactivateCategoryAction } from "@/lib/actions/reference-data-actions";
+import { CategoryManager } from "@/components/reference-data/category-manager";
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const householdId = await getHouseholdId();
+  const categories = await prisma.category.findMany({
+    where: { householdId, isActive: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
-    <ComingSoon
-      icon={Tags}
-      title="Categories"
-      description="Default categories are locked (income/expense), plus any custom ones you add — editable and deletable."
-      phase="Phase 4"
+    <CategoryManager
+      expenseCategories={categories.filter((c) => c.kind === "expense")}
+      incomeCategories={categories.filter((c) => c.kind === "income")}
+      createAction={createCategoryAction}
+      deactivateAction={deactivateCategoryAction}
     />
   );
 }
