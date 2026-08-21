@@ -65,5 +65,20 @@ export async function recategorizeTransactionAction(formData: FormData) {
     data: { categoryId, categoryStatus: "confirmed" },
   });
 
+  const saveRule = formData.get("saveRule");
+  const matchText = String(formData.get("matchText") ?? "").trim();
+  if (saveRule && matchText) {
+    await prisma.vendorRule.create({
+      data: {
+        householdId,
+        matchText,
+        matchType: "contains",
+        categoryId,
+        source: "learned",
+      },
+    });
+    revalidatePath("/vendor-rules");
+  }
+
   revalidateAll();
 }

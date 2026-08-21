@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
 import { recategorizeTransactionAction } from "@/lib/actions/transaction-actions";
 import { StatusBadge } from "@/components/transactions/status-badge";
+import { suggestVendorMatchText } from "@/lib/categorization/suggest-match-text";
 
 export default async function ReviewQueuePage() {
   const householdId = await getHouseholdId();
@@ -50,29 +51,45 @@ export default async function ReviewQueuePage() {
                   {t.category && <> · current guess: {t.category.name}</>}
                 </div>
               </div>
-              <form action={recategorizeTransactionAction} className="flex items-center gap-2">
+              <form
+                action={recategorizeTransactionAction}
+                className="flex flex-col gap-2 sm:items-end"
+              >
                 <input type="hidden" name="id" value={t.id} />
-                <select
-                  name="categoryId"
-                  defaultValue={t.categoryId ?? ""}
-                  required
-                  className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
-                >
-                  <option value="" disabled>
-                    Choose category
-                  </option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
+                <div className="flex items-center gap-2">
+                  <select
+                    name="categoryId"
+                    defaultValue={t.categoryId ?? ""}
+                    required
+                    className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
+                  >
+                    <option value="" disabled>
+                      Choose category
                     </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-                >
-                  Confirm
-                </button>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    Confirm
+                  </button>
+                </div>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <input type="checkbox" name="saveRule" value="1" defaultChecked className="h-3.5 w-3.5" />
+                  Always categorize
+                  <input
+                    type="text"
+                    name="matchText"
+                    defaultValue={suggestVendorMatchText(t.description)}
+                    className="w-40 rounded-md border border-border bg-background px-2 py-0.5 text-xs"
+                  />
+                  this way
+                </label>
               </form>
             </div>
           );
