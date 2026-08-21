@@ -40,7 +40,7 @@ export function TransactionTable({ transactions }: { transactions: Row[] }) {
             return (
               <tr key={t.id}>
                 <td className="px-4 py-2 whitespace-nowrap">
-                  {new Date(t.date).toLocaleDateString("en-IN")}
+                  {new Date(t.date).toLocaleDateString("en-IN", { timeZone: "UTC" })}
                 </td>
                 <td className="px-4 py-2">{t.description}</td>
                 <td className="px-4 py-2 text-muted-foreground">{t.account.name}</td>
