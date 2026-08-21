@@ -11,6 +11,7 @@ import {
   getMonthOverMonthDelta,
   getNeedsAttentionCount,
 } from "@/lib/queries/dashboard";
+import { getLoanSummary } from "@/lib/queries/loans";
 import { HeadlineCards } from "@/components/dashboard/headline-cards";
 import { CategoryDonut } from "@/components/dashboard/category-donut";
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
@@ -41,6 +42,7 @@ export default async function DashboardPage() {
     trend,
     momDelta,
     needsAttention,
+    loanSummary,
     recent,
   ] = await Promise.all([
     getHeadlineTotals(householdId),
@@ -52,6 +54,7 @@ export default async function DashboardPage() {
     getTrend(householdId),
     getMonthOverMonthDelta(householdId),
     getNeedsAttentionCount(householdId),
+    getLoanSummary(householdId),
     prisma.transaction.findMany({
       where: { householdId },
       include: { account: true, category: true, home: true, personTag: true },
@@ -93,7 +96,20 @@ export default async function DashboardPage() {
           <MomDeltaTable data={momDelta} />
         </Card>
         <Card title="Loans & borrowing">
-          <div className="p-4 text-center text-sm text-muted-foreground">Coming in Phase 10.</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs text-muted-foreground">Outstanding — lent</div>
+              <div className="text-lg font-bold text-income">
+                ₹{loanSummary.totalLent.toLocaleString("en-IN")}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Outstanding — borrowed</div>
+              <div className="text-lg font-bold text-expense">
+                ₹{loanSummary.totalBorrowed.toLocaleString("en-IN")}
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
