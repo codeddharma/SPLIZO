@@ -5,7 +5,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await requireSession();
 
   return (
-    <div className="flex flex-1">
+    <div className="flex flex-1 flex-col sm:flex-row">
       <AppSidebar user={{ name: session.user.name ?? "", email: session.user.email ?? "" }} />
       <div className="flex flex-1 flex-col overflow-y-auto">{children}</div>
     </div>
