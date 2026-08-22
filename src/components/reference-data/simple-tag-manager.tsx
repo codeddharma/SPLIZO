@@ -1,3 +1,5 @@
+import { SubmitButton } from "@/components/ui/submit-button";
+
 type Item = { id: string; name: string };
 
 export function SimpleTagManager({
@@ -31,12 +33,9 @@ export function SimpleTagManager({
           required
           className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm"
         />
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add {label}
-        </button>
+        </SubmitButton>
       </form>
 
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
@@ -50,12 +49,12 @@ export function SimpleTagManager({
             <span className="text-sm font-medium">{item.name}</span>
             <form action={deactivateAction}>
               <input type="hidden" name="id" value={item.id} />
-              <button
-                type="submit"
+              <SubmitButton
                 className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+                pendingText="Removing…"
               >
                 Remove
-              </button>
+              </SubmitButton>
             </form>
           </div>
         ))}

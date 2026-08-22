@@ -3,6 +3,7 @@ import { getHouseholdId } from "@/lib/session";
 import { recategorizeTransactionAction } from "@/lib/actions/transaction-actions";
 import { StatusBadge } from "@/components/transactions/status-badge";
 import { suggestVendorMatchText } from "@/lib/categorization/suggest-match-text";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function ReviewQueuePage() {
   const householdId = await getHouseholdId();
@@ -72,12 +73,9 @@ export default async function ReviewQueuePage() {
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-                  >
+                  <SubmitButton className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
                     Confirm
-                  </button>
+                  </SubmitButton>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <input type="checkbox" name="saveRule" value="1" defaultChecked className="h-3.5 w-3.5" />

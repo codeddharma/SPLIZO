@@ -2,6 +2,7 @@ import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/logo";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 async function loginAction(formData: FormData) {
   "use server";
@@ -59,12 +60,12 @@ export default async function LoginPage({
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+        <SubmitButton
+          className="rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          pendingText="Logging in…"
         >
           Log in
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

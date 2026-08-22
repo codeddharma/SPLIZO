@@ -1,4 +1,5 @@
 import { Wallet, CreditCard, Landmark } from "lucide-react";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 type Account = {
   id: string;
@@ -71,12 +72,9 @@ export function AccountManager({
             className="w-20 rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add
-        </button>
+        </SubmitButton>
       </form>
 
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
@@ -101,12 +99,12 @@ export function AccountManager({
               </div>
               <form action={deactivateAction}>
                 <input type="hidden" name="id" value={account.id} />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+                  pendingText="Removing…"
                 >
                   Remove
-                </button>
+                </SubmitButton>
               </form>
             </div>
           );

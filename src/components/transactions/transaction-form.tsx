@@ -1,3 +1,5 @@
+import { SubmitButton } from "@/components/ui/submit-button";
+
 type Option = { id: string; name: string };
 
 export function TransactionForm({
@@ -137,12 +139,9 @@ export function TransactionForm({
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-      >
+      <SubmitButton className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
         Add transaction
-      </button>
+      </SubmitButton>
     </form>
   );
 }

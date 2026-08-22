@@ -1,4 +1,10 @@
+"use client";
+
+import { useId } from "react";
+
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
+  const gradId = useId();
+
   return (
     <svg
       width={size}
@@ -11,13 +17,13 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       aria-label="Splizo logo"
     >
       <defs>
-        <linearGradient id="splizo-grad" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradId} x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#2DD4BF" />
           <stop offset="1" stopColor="#0D9488" />
         </linearGradient>
       </defs>
-      <circle cx="16" cy="20" r="13" fill="url(#splizo-grad)" fillOpacity="0.9" />
-      <circle cx="24" cy="20" r="13" fill="url(#splizo-grad)" fillOpacity="0.55" />
+      <circle cx="16" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.9" />
+      <circle cx="24" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.55" />
       <path
         d="M10 24 L17 16 L22 21 L30 11"
         stroke="white"

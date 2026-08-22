@@ -1,3 +1,5 @@
+import { SubmitButton } from "@/components/ui/submit-button";
+
 type VendorRule = {
   id: string;
   matchText: string;
@@ -67,12 +69,9 @@ export function VendorRuleManager({
             ))}
           </select>
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add
-        </button>
+        </SubmitButton>
       </form>
 
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
@@ -94,12 +93,12 @@ export function VendorRuleManager({
             </div>
             <form action={deleteAction}>
               <input type="hidden" name="id" value={rule.id} />
-              <button
-                type="submit"
+              <SubmitButton
                 className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+                pendingText="Removing…"
               >
                 Remove
-              </button>
+              </SubmitButton>
             </form>
           </div>
         ))}

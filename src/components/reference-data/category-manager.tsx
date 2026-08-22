@@ -1,4 +1,5 @@
 import { Lock } from "lucide-react";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 type Category = {
   id: string;
@@ -32,12 +33,12 @@ function CategoryGroup({
             {!category.isSystem && (
               <form action={deactivateAction}>
                 <input type="hidden" name="id" value={category.id} />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+                  pendingText="Removing…"
                 >
                   Remove
-                </button>
+                </SubmitButton>
               </form>
             )}
           </div>
@@ -93,12 +94,9 @@ export function CategoryManager({
             <option value="income">Income</option>
           </select>
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add
-        </button>
+        </SubmitButton>
       </form>
 
       <CategoryGroup

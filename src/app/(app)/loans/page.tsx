@@ -6,6 +6,7 @@ import {
   createLoanAction,
   addRepaymentAction,
 } from "@/lib/actions/loan-actions";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function LoansPage() {
   const householdId = await getHouseholdId();
@@ -62,12 +63,9 @@ export default async function LoansPage() {
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add contact
-        </button>
+        </SubmitButton>
       </form>
 
       {contacts.length === 0 ? (
@@ -126,12 +124,9 @@ export default async function LoansPage() {
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
             />
           </div>
-          <button
-            type="submit"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
+          <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
             Add loan
-          </button>
+          </SubmitButton>
         </form>
       )}
 
@@ -190,12 +185,12 @@ export default async function LoansPage() {
                   required
                   className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
                 />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-muted"
+                <SubmitButton
+                  className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                  pendingText="Adding…"
                 >
                   Add repayment
-                </button>
+                </SubmitButton>
               </form>
             )}
           </div>
