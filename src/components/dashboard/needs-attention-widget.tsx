@@ -13,7 +13,7 @@ export function NeedsAttentionWidget({ count }: { count: number }) {
 
   return (
     <Link
-      href="/transactions/review"
+      href="/transactions?status=needs_review"
       className="flex items-center justify-between rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm font-semibold text-warning transition-colors hover:bg-warning/20"
     >
       <span className="flex items-center gap-2">

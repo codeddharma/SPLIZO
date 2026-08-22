@@ -52,7 +52,7 @@ export default async function TransactionsPage({
 
       <StatusTabs active={status && STATUS_FILTERS[status] ? status : "all"} />
 
-      <TransactionTable transactions={transactions} />
+      <TransactionTable transactions={transactions} categories={categories} showActions />
     </div>
   );
 }

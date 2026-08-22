@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ListChecks,
-  AlertTriangle,
   Upload,
   Wallet,
   Tags,
@@ -25,7 +24,6 @@ import { logoutAction } from "@/lib/actions/auth-actions";
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/transactions", label: "Transactions", icon: ListChecks },
-  { href: "/transactions/review", label: "Review queue", icon: AlertTriangle },
   { href: "/import", label: "Import", icon: Upload },
   { href: "/accounts", label: "Accounts", icon: Wallet },
   { href: "/categories", label: "Categories", icon: Tags },
@@ -82,9 +80,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {NAV.map((entry) => {
             const active =
-              entry.href === "/transactions"
-                ? pathname === "/transactions"
-                : pathname === entry.href || pathname.startsWith(entry.href + "/");
+              pathname === entry.href || pathname.startsWith(entry.href + "/");
             return (
               <Link
                 key={entry.href}
