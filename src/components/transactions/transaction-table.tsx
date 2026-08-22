@@ -18,13 +18,13 @@ export function TransactionTable({ transactions }: { transactions: Row[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th className="px-4 py-2 font-semibold">Date</th>
-            <th className="px-4 py-2 font-semibold">Description</th>
-            <th className="px-4 py-2 font-semibold">Account</th>
-            <th className="px-4 py-2 font-semibold">Category</th>
-            <th className="px-4 py-2 font-semibold">Home</th>
-            <th className="px-4 py-2 font-semibold">Person</th>
-            <th className="px-4 py-2 text-right font-semibold">Amount</th>
+            <th className="px-4 py-3 font-semibold">Date</th>
+            <th className="px-4 py-3 font-semibold">Description</th>
+            <th className="px-4 py-3 font-semibold">Account</th>
+            <th className="px-4 py-3 font-semibold">Category</th>
+            <th className="px-4 py-3 font-semibold">Home</th>
+            <th className="px-4 py-3 font-semibold">Person</th>
+            <th className="px-4 py-3 text-right font-semibold">Amount</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -39,21 +39,21 @@ export function TransactionTable({ transactions }: { transactions: Row[] }) {
             const amount = Number(t.amount);
             return (
               <tr key={t.id}>
-                <td className="px-4 py-2 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   {new Date(t.date).toLocaleDateString("en-IN", { timeZone: "UTC" })}
                 </td>
-                <td className="px-4 py-2">{t.description}</td>
-                <td className="px-4 py-2 text-muted-foreground">{t.account.name}</td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-3 font-medium">{t.description}</td>
+                <td className="px-4 py-3 text-muted-foreground">{t.account.name}</td>
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <span>{t.category?.name ?? "—"}</span>
                     <StatusBadge status={t.categoryStatus} />
                   </div>
                 </td>
-                <td className="px-4 py-2 text-muted-foreground">{t.home?.name ?? "—"}</td>
-                <td className="px-4 py-2 text-muted-foreground">{t.personTag?.name ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{t.home?.name ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{t.personTag?.name ?? "—"}</td>
                 <td
-                  className={`px-4 py-2 text-right font-semibold ${
+                  className={`px-4 py-3 text-right font-semibold ${
                     amount < 0 ? "text-expense" : "text-income"
                   }`}
                 >
