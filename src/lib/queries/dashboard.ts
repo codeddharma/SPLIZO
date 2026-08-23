@@ -26,7 +26,7 @@ export async function getHeadlineTotals(householdId: string, monthsAgo = 0) {
 
 async function groupExpenseByField(
   householdId: string,
-  field: "categoryId" | "homeId" | "accountId" | "personTagId",
+  field: "categoryId" | "accountId",
   monthsAgo = 0
 ) {
   const { start, end } = monthRange(monthsAgo);
@@ -52,12 +52,17 @@ export async function getCategoryBreakdown(householdId: string, monthsAgo = 0) {
 }
 
 export async function getHomeBreakdown(householdId: string) {
-  const grouped = await groupExpenseByField(householdId, "homeId");
-  const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
+  const { start, end } = monthRange(0);
+  const grouped = await prisma.transactionHome.groupBy({
+    by: ["homeId"],
+    where: { amount: { lt: 0 }, transaction: { householdId, date: { gte: start, lt: end } } },
+    _sum: { amount: true },
+  });
+  const ids = grouped.map((g) => g.homeId);
   const homes = await prisma.home.findMany({ where: { id: { in: ids } } });
   const nameById = Object.fromEntries(homes.map((h) => [h.id, h.name]));
   return grouped
-    .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unassigned", value: g.value }))
+    .map((g) => ({ name: nameById[g.homeId] ?? "Unknown", value: Math.abs(Number(g._sum.amount ?? 0)) }))
     .sort((a, b) => b.value - a.value);
 }
 
@@ -72,12 +77,38 @@ export async function getAccountBreakdown(householdId: string) {
 }
 
 export async function getPersonSplit(householdId: string) {
-  const grouped = await groupExpenseByField(householdId, "personTagId");
-  const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
+  const { start, end } = monthRange(0);
+  const grouped = await prisma.transactionPersonTag.groupBy({
+    by: ["personTagId"],
+    where: { amount: { lt: 0 }, transaction: { householdId, date: { gte: start, lt: end } } },
+    _sum: { amount: true },
+  });
+  const ids = grouped.map((g) => g.personTagId);
   const people = await prisma.personTag.findMany({ where: { id: { in: ids } } });
   const nameById = Object.fromEntries(people.map((p) => [p.id, p.name]));
   return grouped
-    .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unassigned", value: g.value }))
+    .map((g) => ({
+      name: nameById[g.personTagId] ?? "Unknown",
+      value: Math.abs(Number(g._sum.amount ?? 0)),
+    }))
+    .sort((a, b) => b.value - a.value);
+}
+
+export async function getVendorBreakdown(householdId: string) {
+  const { start, end } = monthRange(0);
+  const grouped = await prisma.transaction.groupBy({
+    by: ["vendorId"],
+    where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 }, vendorId: { not: null } },
+    _sum: { amount: true },
+  });
+  const ids = grouped.map((g) => g.vendorId).filter((id): id is string => !!id);
+  const vendors = await prisma.vendor.findMany({ where: { id: { in: ids } } });
+  const nameById = Object.fromEntries(vendors.map((v) => [v.id, v.name]));
+  return grouped
+    .map((g) => ({
+      name: g.vendorId ? (nameById[g.vendorId] ?? "Unknown") : "Unknown",
+      value: Math.abs(Number(g._sum.amount ?? 0)),
+    }))
     .sort((a, b) => b.value - a.value);
 }
 

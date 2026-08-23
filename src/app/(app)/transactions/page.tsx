@@ -28,7 +28,13 @@ export default async function TransactionsPage({
     prisma.personTag.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.transaction.findMany({
       where: { householdId, ...statusFilter },
-      include: { account: true, category: true, home: true, personTag: true },
+      include: {
+        account: true,
+        category: true,
+        vendor: true,
+        homes: { include: { home: true } },
+        people: { include: { personTag: true } },
+      },
       orderBy: { date: "desc" },
       take: 50,
     }),

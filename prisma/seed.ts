@@ -98,29 +98,28 @@ async function main() {
     createdExpenseCategories.map((c) => [c.name, c.id])
   );
 
-  const vendorRules: { matchText: string; category: string }[] = [
-    { matchText: "SWIGGY", category: "Dining Out" },
-    { matchText: "ZOMATO", category: "Dining Out" },
-    { matchText: "AMAZON", category: "Shopping" },
-    { matchText: "FLIPKART", category: "Shopping" },
-    { matchText: "UBER", category: "Transport & Fuel" },
-    { matchText: "OLA", category: "Transport & Fuel" },
-    { matchText: "BESCOM", category: "Utilities" },
-    { matchText: "AIRTEL", category: "Utilities" },
-    { matchText: "BIGBASKET", category: "Groceries" },
+  const vendorSeeds: { name: string; matchText: string; category: string }[] = [
+    { name: "Swiggy", matchText: "SWIGGY", category: "Dining Out" },
+    { name: "Zomato", matchText: "ZOMATO", category: "Dining Out" },
+    { name: "Amazon", matchText: "AMAZON", category: "Shopping" },
+    { name: "Flipkart", matchText: "FLIPKART", category: "Shopping" },
+    { name: "Uber", matchText: "UBER", category: "Transport & Fuel" },
+    { name: "Ola", matchText: "OLA", category: "Transport & Fuel" },
+    { name: "BESCOM", matchText: "BESCOM", category: "Utilities" },
+    { name: "Airtel", matchText: "AIRTEL", category: "Utilities" },
+    { name: "BigBasket", matchText: "BIGBASKET", category: "Groceries" },
   ];
 
-  await prisma.vendorRule.createMany({
-    data: vendorRules
-      .filter((r) => categoryByName[r.category])
-      .map((r) => ({
-        householdId: household.id,
-        matchText: r.matchText,
-        matchType: "contains" as const,
-        categoryId: categoryByName[r.category],
-        source: "user_defined" as const,
-      })),
-  });
+  for (const v of vendorSeeds) {
+    const categoryId = categoryByName[v.category];
+    if (!categoryId) continue;
+    const vendor = await prisma.vendor.create({
+      data: { householdId: household.id, name: v.name, matchText: v.matchText, matchType: "contains" },
+    });
+    await prisma.categoryRule.create({
+      data: { householdId: household.id, vendorId: vendor.id, categoryId, source: "user_defined" },
+    });
+  }
 
   console.log("Seed complete.");
   console.log(`Household: ${household.name} (${household.id})`);

@@ -27,7 +27,7 @@ const NAV = [
   { href: "/import", label: "Import", icon: Upload },
   { href: "/accounts", label: "Accounts", icon: Wallet },
   { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/vendor-rules", label: "Vendor rules", icon: Sparkles },
+  { href: "/vendors", label: "Vendors", icon: Sparkles },
   { href: "/homes", label: "Homes", icon: HomeIcon },
   { href: "/people", label: "People", icon: Users },
   { href: "/loans", label: "Loans", icon: HandCoins },

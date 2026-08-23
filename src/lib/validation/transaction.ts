@@ -8,6 +8,6 @@ export const transactionSchema = z.object({
   description: z.string().trim().min(1, "Description is required").max(200),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
   categoryId: z.string().trim().optional().or(z.literal("")),
-  homeId: z.string().trim().optional().or(z.literal("")),
-  personTagId: z.string().trim().optional().or(z.literal("")),
+  homeIds: z.array(z.string().trim().min(1)),
+  personTagIds: z.array(z.string().trim().min(1)),
 });

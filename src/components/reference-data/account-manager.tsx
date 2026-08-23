@@ -1,15 +1,15 @@
-import { Wallet, CreditCard, Landmark } from "lucide-react";
+import { Wallet, CreditCard, Landmark, Banknote } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 type Account = {
   id: string;
   name: string;
-  type: "bank" | "card" | "wallet";
+  type: "bank" | "card" | "wallet" | "cash";
   institution: string | null;
   last4: string | null;
 };
 
-const TYPE_ICON = { bank: Landmark, card: CreditCard, wallet: Wallet };
+const TYPE_ICON = { bank: Landmark, card: CreditCard, wallet: Wallet, cash: Banknote };
 
 export function AccountManager({
   accounts,
@@ -53,6 +53,7 @@ export function AccountManager({
             <option value="bank">Bank</option>
             <option value="card">Card</option>
             <option value="wallet">Wallet</option>
+            <option value="cash">Cash</option>
           </select>
         </div>
         <div className="flex flex-col gap-1.5">

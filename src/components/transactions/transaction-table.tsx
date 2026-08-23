@@ -12,8 +12,9 @@ type Row = {
   categoryId: string | null;
   account: { name: string };
   category: { name: string } | null;
-  home: { name: string } | null;
-  personTag: { name: string } | null;
+  vendor: { name: string } | null;
+  homes: { home: { name: string } }[];
+  people: { personTag: { name: string } }[];
 };
 
 type Category = { id: string; name: string };
@@ -37,6 +38,7 @@ export function TransactionTable({
             <th className="px-4 py-3 font-semibold">Date</th>
             <th className="px-4 py-3 font-semibold">Description</th>
             <th className="px-4 py-3 font-semibold">Account</th>
+            <th className="px-4 py-3 font-semibold">Vendor</th>
             <th className="px-4 py-3 font-semibold">Category</th>
             <th className="px-4 py-3 font-semibold">Home</th>
             <th className="px-4 py-3 font-semibold">Person</th>
@@ -46,7 +48,7 @@ export function TransactionTable({
         <tbody className="divide-y divide-border">
           {transactions.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
+              <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
                 No transactions yet.
               </td>
             </tr>
@@ -61,6 +63,7 @@ export function TransactionTable({
                 </td>
                 <td className="px-4 py-3 font-medium align-top">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground align-top">{t.account.name}</td>
+                <td className="px-4 py-3 text-muted-foreground align-top">{t.vendor?.name ?? "—"}</td>
                 <td className="px-4 py-3 align-top">
                   {needsAction ? (
                     <form
@@ -114,9 +117,11 @@ export function TransactionTable({
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground align-top">{t.home?.name ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground align-top">
-                  {t.personTag?.name ?? "—"}
+                  {t.homes.length > 0 ? t.homes.map((h) => h.home.name).join(", ") : "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground align-top">
+                  {t.people.length > 0 ? t.people.map((p) => p.personTag.name).join(", ") : "—"}
                 </td>
                 <td
                   className={`px-4 py-3 text-right font-semibold align-top ${

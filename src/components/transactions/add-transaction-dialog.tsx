@@ -44,7 +44,7 @@ export function AddTransactionDialog({
         <DialogHeader>
           <DialogTitle>Add transaction</DialogTitle>
           <DialogDescription>
-            Category auto-detects from vendor rules if left blank.
+            Category auto-detects from vendors if left blank.
           </DialogDescription>
         </DialogHeader>
         <TransactionForm

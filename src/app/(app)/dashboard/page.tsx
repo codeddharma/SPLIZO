@@ -10,6 +10,7 @@ import {
   getTrend,
   getMonthOverMonthDelta,
   getNeedsAttentionCount,
+  getVendorBreakdown,
 } from "@/lib/queries/dashboard";
 import { getLoanSummary } from "@/lib/queries/loans";
 import { HeadlineCards } from "@/components/dashboard/headline-cards";
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
     momDelta,
     needsAttention,
     loanSummary,
+    vendorBreakdown,
     recent,
   ] = await Promise.all([
     getHeadlineTotals(householdId),
@@ -55,9 +57,16 @@ export default async function DashboardPage() {
     getMonthOverMonthDelta(householdId),
     getNeedsAttentionCount(householdId),
     getLoanSummary(householdId),
+    getVendorBreakdown(householdId),
     prisma.transaction.findMany({
       where: { householdId },
-      include: { account: true, category: true, home: true, personTag: true },
+      include: {
+        account: true,
+        category: true,
+        vendor: true,
+        homes: { include: { home: true } },
+        people: { include: { personTag: true } },
+      },
       orderBy: { date: "desc" },
       take: 8,
     }),
@@ -91,6 +100,9 @@ export default async function DashboardPage() {
         </Card>
         <Card title="Income by source">
           <BarBreakdown data={incomeBreakdown} />
+        </Card>
+        <Card title="Spend by vendor">
+          <BarBreakdown data={vendorBreakdown} />
         </Card>
         <Card title="Month-over-month (expense categories)">
           <MomDeltaTable data={momDelta} />

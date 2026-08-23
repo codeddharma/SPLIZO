@@ -7,7 +7,7 @@ import {
   nameOnlySchema,
   accountSchema,
   categorySchema,
-  vendorRuleSchema,
+  vendorSchema,
 } from "@/lib/validation/reference-data";
 
 // Homes
@@ -95,30 +95,38 @@ export async function deactivateCategoryAction(formData: FormData) {
   revalidatePath("/categories");
 }
 
-// Vendor rules
+// Vendors (each vendor maps to exactly one category via its CategoryRule)
 
-export async function createVendorRuleAction(formData: FormData) {
+export async function createVendorAction(formData: FormData) {
   const householdId = await getHouseholdId();
-  const parsed = vendorRuleSchema.parse({
+  const parsed = vendorSchema.parse({
+    name: formData.get("name"),
     matchText: formData.get("matchText"),
     matchType: formData.get("matchType"),
     categoryId: formData.get("categoryId"),
   });
-  await prisma.vendorRule.create({
+  const vendor = await prisma.vendor.create({
     data: {
       householdId,
+      name: parsed.name,
       matchText: parsed.matchText,
       matchType: parsed.matchType,
+    },
+  });
+  await prisma.categoryRule.create({
+    data: {
+      householdId,
+      vendorId: vendor.id,
       categoryId: parsed.categoryId,
       source: "user_defined",
     },
   });
-  revalidatePath("/vendor-rules");
+  revalidatePath("/vendors");
 }
 
-export async function deleteVendorRuleAction(formData: FormData) {
+export async function deactivateVendorAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const id = String(formData.get("id"));
-  await prisma.vendorRule.deleteMany({ where: { id, householdId } });
-  revalidatePath("/vendor-rules");
+  await prisma.vendor.updateMany({ where: { id, householdId }, data: { isActive: false } });
+  revalidatePath("/vendors");
 }

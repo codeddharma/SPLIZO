@@ -5,11 +5,21 @@ import { getHouseholdId } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { transactionSchema } from "@/lib/validation/transaction";
 import { categorize } from "@/lib/categorization/apply-categorization";
+import { resolveShares } from "@/lib/transactions/resolve-shares";
 
 function revalidateAll() {
   revalidatePath("/transactions");
-  revalidatePath("/transactions/review");
   revalidatePath("/dashboard");
+}
+
+function parseAmountOverrides(formData: FormData, prefix: string, ids: string[]) {
+  const overrides: Record<string, number | undefined> = {};
+  for (const id of ids) {
+    const raw = formData.get(`${prefix}${id}`);
+    const n = raw ? Number(raw) : NaN;
+    overrides[id] = Number.isFinite(n) && n > 0 ? n : undefined;
+  }
+  return overrides;
 }
 
 export async function createTransactionAction(formData: FormData) {
@@ -22,18 +32,27 @@ export async function createTransactionAction(formData: FormData) {
     description: formData.get("description"),
     notes: formData.get("notes") ?? "",
     categoryId: formData.get("categoryId") ?? "",
-    homeId: formData.get("homeId") ?? "",
-    personTagId: formData.get("personTagId") ?? "",
+    homeIds: formData.getAll("homeIds").map(String),
+    personTagIds: formData.getAll("personTagIds").map(String),
   });
+
+  if (parsed.direction === "out" && (parsed.homeIds.length === 0 || parsed.personTagIds.length === 0)) {
+    throw new Error("At least one home and one person are required for expense transactions.");
+  }
 
   const signedAmount =
     parsed.direction === "out" ? -Math.abs(parsed.amount) : Math.abs(parsed.amount);
 
-  const { categoryId, categoryStatus } = await categorize(
+  const { categoryId, categoryStatus, vendorId } = await categorize(
     householdId,
     parsed.description,
     parsed.categoryId || null
   );
+
+  const homeOverrides = parseAmountOverrides(formData, "homeAmount_", parsed.homeIds);
+  const personOverrides = parseAmountOverrides(formData, "personAmount_", parsed.personTagIds);
+  const homeShares = resolveShares(parsed.homeIds, homeOverrides, signedAmount);
+  const personShares = resolveShares(parsed.personTagIds, personOverrides, signedAmount);
 
   await prisma.transaction.create({
     data: {
@@ -41,13 +60,14 @@ export async function createTransactionAction(formData: FormData) {
       accountId: parsed.accountId,
       categoryId,
       categoryStatus,
-      personTagId: parsed.personTagId || null,
-      homeId: parsed.homeId || null,
+      vendorId,
       amount: signedAmount,
       date: new Date(parsed.date),
       description: parsed.description,
       notes: parsed.notes || null,
       source: "manual",
+      homes: { create: homeShares.map((s) => ({ homeId: s.id, amount: s.amount })) },
+      people: { create: personShares.map((s) => ({ personTagId: s.id, amount: s.amount })) },
     },
   });
 
@@ -60,6 +80,9 @@ export async function recategorizeTransactionAction(formData: FormData) {
   const categoryId = String(formData.get("categoryId"));
   if (!categoryId) return;
 
+  const transaction = await prisma.transaction.findFirst({ where: { id, householdId } });
+  if (!transaction) return;
+
   await prisma.transaction.updateMany({
     where: { id, householdId },
     data: { categoryId, categoryStatus: "confirmed" },
@@ -68,16 +91,23 @@ export async function recategorizeTransactionAction(formData: FormData) {
   const saveRule = formData.get("saveRule");
   const matchText = String(formData.get("matchText") ?? "").trim();
   if (saveRule && matchText) {
-    await prisma.vendorRule.create({
-      data: {
-        householdId,
-        matchText,
-        matchType: "contains",
-        categoryId,
-        source: "learned",
-      },
-    });
-    revalidatePath("/vendor-rules");
+    if (transaction.vendorId) {
+      // A vendor was already detected for this transaction — just (re)map it to this category.
+      await prisma.categoryRule.upsert({
+        where: { vendorId: transaction.vendorId },
+        create: { householdId, vendorId: transaction.vendorId, categoryId, source: "learned" },
+        update: { categoryId },
+      });
+    } else {
+      const vendor = await prisma.vendor.create({
+        data: { householdId, name: matchText, matchText, matchType: "contains" },
+      });
+      await prisma.categoryRule.create({
+        data: { householdId, vendorId: vendor.id, categoryId, source: "learned" },
+      });
+      await prisma.transaction.updateMany({ where: { id, householdId }, data: { vendorId: vendor.id } });
+    }
+    revalidatePath("/vendors");
   }
 
   revalidateAll();

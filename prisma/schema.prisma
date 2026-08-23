@@ -17,7 +17,8 @@ model Household {
   homes         Home[]
   personTags    PersonTag[]
   categories    Category[]
-  vendorRules   VendorRule[]
+  vendors       Vendor[]
+  categoryRules CategoryRule[]
   accounts      Account[]
   transactions  Transaction[]
   importBatches ImportBatch[]
@@ -47,7 +48,7 @@ model Home {
   name        String
   isActive    Boolean   @default(true)
 
-  transactions Transaction[]
+  transactionHomes TransactionHome[]
 
   @@index([householdId])
   @@map("homes")
@@ -60,7 +61,7 @@ model PersonTag {
   name        String
   isActive    Boolean   @default(true)
 
-  transactions Transaction[]
+  transactionPersonTags TransactionPersonTag[]
 
   @@index([householdId])
   @@map("person_tags")
@@ -83,11 +84,43 @@ model Category {
   parent      Category?    @relation("CategoryToParent", fields: [parentId], references: [id])
   children    Category[]   @relation("CategoryToParent")
 
-  vendorRules  VendorRule[]
-  transactions Transaction[]
+  categoryRules CategoryRule[]
+  transactions  Transaction[]
 
   @@index([householdId])
   @@map("categories")
+}
+
+model Vendor {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id])
+  name        String
+  matchText   String
+  matchType   VendorMatchType
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  categoryRule CategoryRule?
+  transactions Transaction[]
+
+  @@index([householdId])
+  @@map("vendors")
+}
+
+model CategoryRule {
+  id          String           @id @default(cuid())
+  householdId String
+  household   Household        @relation(fields: [householdId], references: [id])
+  vendorId    String           @unique
+  vendor      Vendor           @relation(fields: [vendorId], references: [id])
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id])
+  source      VendorRuleSource
+  createdAt   DateTime         @default(now())
+
+  @@index([householdId])
+  @@map("category_rules")
 }
 
 enum VendorMatchType {
@@ -100,25 +133,11 @@ enum VendorRuleSource {
   learned
 }
 
-model VendorRule {
-  id          String           @id @default(cuid())
-  householdId String
-  household   Household        @relation(fields: [householdId], references: [id])
-  matchText   String
-  matchType   VendorMatchType
-  categoryId  String
-  category    Category         @relation(fields: [categoryId], references: [id])
-  source      VendorRuleSource
-  createdAt   DateTime         @default(now())
-
-  @@index([householdId])
-  @@map("vendor_rules")
-}
-
 enum AccountType {
   bank
   card
   wallet
+  cash
 }
 
 model Account {
@@ -159,10 +178,8 @@ model Transaction {
   categoryId     String?
   category       Category?         @relation(fields: [categoryId], references: [id])
   categoryStatus CategoryStatus    @default(unmapped)
-  personTagId    String?
-  personTag      PersonTag?        @relation(fields: [personTagId], references: [id])
-  homeId         String?
-  home           Home?             @relation(fields: [homeId], references: [id])
+  vendorId       String?
+  vendor         Vendor?           @relation(fields: [vendorId], references: [id])
   amount         Decimal           @db.Decimal(12, 2)
   date           DateTime
   description    String
@@ -174,11 +191,39 @@ model Transaction {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  loan Loan?
+  loan  Loan?
+  homes  TransactionHome[]
+  people TransactionPersonTag[]
 
   @@index([householdId, date])
   @@index([householdId, categoryStatus])
   @@map("transactions")
+}
+
+model TransactionHome {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  homeId        String
+  home          Home        @relation(fields: [homeId], references: [id])
+  amount        Decimal     @db.Decimal(12, 2)
+
+  @@unique([transactionId, homeId])
+  @@index([homeId])
+  @@map("transaction_homes")
+}
+
+model TransactionPersonTag {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  personTagId   String
+  personTag     PersonTag   @relation(fields: [personTagId], references: [id])
+  amount        Decimal     @db.Decimal(12, 2)
+
+  @@unique([transactionId, personTagId])
+  @@index([personTagId])
+  @@map("transaction_person_tags")
 }
 
 model ImportBatch {

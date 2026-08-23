@@ -18,14 +18,15 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
     >
       <defs>
         <linearGradient id={gradId} x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#2DD4BF" />
-          <stop offset="1" stopColor="#0D9488" />
+          <stop offset="0" stopColor="#FCD34D" />
+          <stop offset="1" stopColor="#B45309" />
         </linearGradient>
       </defs>
-      <circle cx="16" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.9" />
-      <circle cx="24" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.55" />
+      <circle cx="16" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.95" />
+      <circle cx="24" cy="20" r="13" fill={`url(#${gradId})`} fillOpacity="0.65" />
       <path
         d="M10 24 L17 16 L22 21 L30 11"
+        fill="none"
         stroke="white"
         strokeWidth="2.4"
         strokeLinecap="round"

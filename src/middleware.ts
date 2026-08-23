@@ -14,7 +14,7 @@ export const config = {
     "/import/:path*",
     "/accounts/:path*",
     "/categories/:path*",
-    "/vendor-rules/:path*",
+    "/vendors/:path*",
     "/homes/:path*",
     "/people/:path*",
     "/loans/:path*",
