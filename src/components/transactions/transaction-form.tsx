@@ -2,15 +2,9 @@
 
 import { useState } from "react";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 type Option = { id: string; name: string };
-
-function toggleId(set: Set<string>, id: string) {
-  const next = new Set(set);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  return next;
-}
 
 export function TransactionForm({
   accounts,
@@ -56,6 +50,13 @@ export function TransactionForm({
       onSubmit={handleSubmit}
       className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
     >
+      {Array.from(selectedHomes).map((id) => (
+        <input key={id} type="hidden" name="homeIds" value={id} />
+      ))}
+      {Array.from(selectedPeople).map((id) => (
+        <input key={id} type="hidden" name="personTagIds" value={id} />
+      ))}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Direction</label>
@@ -139,67 +140,67 @@ export function TransactionForm({
           <label className="text-xs font-semibold text-muted-foreground">
             Home{required ? " (required)" : " (optional)"}
           </label>
-          <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-2">
-            {homes.length === 0 && (
-              <span className="text-xs text-muted-foreground">No homes added yet.</span>
-            )}
-            {homes.map((h) => (
-              <div key={h.id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="homeIds"
-                  value={h.id}
-                  checked={selectedHomes.has(h.id)}
-                  onChange={() => setSelectedHomes((s) => toggleId(s, h.id))}
-                  className="h-3.5 w-3.5"
-                />
-                <span className="flex-1 text-sm">{h.name}</span>
-                {selectedHomes.has(h.id) && selectedHomes.size > 1 && (
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    name={`homeAmount_${h.id}`}
-                    placeholder="auto"
-                    className="w-20 rounded border border-border bg-card px-1.5 py-0.5 text-xs"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <MultiSelect
+            options={homes}
+            selected={selectedHomes}
+            onChange={setSelectedHomes}
+            placeholder="Select home(s)"
+          />
+          {selectedHomes.size > 1 && (
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-2">
+              <span className="text-[11px] text-muted-foreground">
+                Split (leave blank for even split):
+              </span>
+              {homes
+                .filter((h) => selectedHomes.has(h.id))
+                .map((h) => (
+                  <div key={h.id} className="flex items-center gap-2">
+                    <span className="flex-1 text-xs">{h.name}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      name={`homeAmount_${h.id}`}
+                      placeholder="auto"
+                      className="w-20 rounded border border-border bg-card px-1.5 py-0.5 text-xs"
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">
             Person{required ? " (required)" : " (optional)"}
           </label>
-          <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-2">
-            {people.length === 0 && (
-              <span className="text-xs text-muted-foreground">No people added yet.</span>
-            )}
-            {people.map((p) => (
-              <div key={p.id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="personTagIds"
-                  value={p.id}
-                  checked={selectedPeople.has(p.id)}
-                  onChange={() => setSelectedPeople((s) => toggleId(s, p.id))}
-                  className="h-3.5 w-3.5"
-                />
-                <span className="flex-1 text-sm">{p.name}</span>
-                {selectedPeople.has(p.id) && selectedPeople.size > 1 && (
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    name={`personAmount_${p.id}`}
-                    placeholder="auto"
-                    className="w-20 rounded border border-border bg-card px-1.5 py-0.5 text-xs"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <MultiSelect
+            options={people}
+            selected={selectedPeople}
+            onChange={setSelectedPeople}
+            placeholder="Select person(s)"
+          />
+          {selectedPeople.size > 1 && (
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-2">
+              <span className="text-[11px] text-muted-foreground">
+                Split (leave blank for even split):
+              </span>
+              {people
+                .filter((p) => selectedPeople.has(p.id))
+                .map((p) => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <span className="flex-1 text-xs">{p.name}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      name={`personAmount_${p.id}`}
+                      placeholder="auto"
+                      className="w-20 rounded border border-border bg-card px-1.5 py-0.5 text-xs"
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 

@@ -73,7 +73,7 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
+    <div className="flex w-full flex-col gap-6 p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">This month at a glance.</p>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
       <NeedsAttentionWidget count={needsAttention} />
       <HeadlineCards income={totals.income} expense={totals.expense} savings={totals.savings} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <Card title="Spend by category">
           <CategoryDonut data={categoryBreakdown} />
         </Card>
