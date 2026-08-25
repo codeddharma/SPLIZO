@@ -160,7 +160,7 @@ export function TransactionForm({
               disabled
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground"
             >
-              <option>Mark someone as Owner in People &amp; Places</option>
+              <option>Mark someone as Owner in Household</option>
             </select>
           )}
         </div>
