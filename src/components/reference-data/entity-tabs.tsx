@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function EntityTabs({ active }: { active: "people" | "place" | "members" }) {
+export function EntityTabs({ active }: { active: "people" | "place" }) {
   return (
     <div className="flex gap-1 border-b border-border">
       <Link
@@ -22,16 +22,6 @@ export function EntityTabs({ active }: { active: "people" | "place" | "members" 
         }`}
       >
         Place
-      </Link>
-      <Link
-        href="/household?tab=members"
-        className={`border-b-2 px-3 py-2 text-sm font-semibold transition-colors ${
-          active === "members"
-            ? "border-primary text-primary"
-            : "border-transparent text-muted-foreground hover:text-foreground"
-        }`}
-      >
-        Members
       </Link>
     </div>
   );

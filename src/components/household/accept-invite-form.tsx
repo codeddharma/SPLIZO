@@ -15,17 +15,6 @@ export function AcceptInviteForm({ token }: { token: string }) {
       <input type="hidden" name="token" value={token} />
       {state?.error && <p className="text-sm text-expense">{state.error}</p>}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-semibold text-muted-foreground">
-          Your name
-        </label>
-        <input
-          id="name"
-          name="name"
-          required
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
         <label htmlFor="password" className="text-sm font-semibold text-muted-foreground">
           Password
         </label>

@@ -27,7 +27,7 @@ export default async function TransactionsPage({
     prisma.home.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.personTag.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.personTag.findMany({
-      where: { householdId, isActive: true, isOwner: true },
+      where: { householdId, isActive: true, userId: { not: null } },
       orderBy: { name: "asc" },
     }),
     prisma.transaction.findMany({

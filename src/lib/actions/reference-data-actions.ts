@@ -16,14 +16,14 @@ export async function createHomeAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const { name } = nameOnlySchema.parse({ name: formData.get("name") });
   await prisma.home.create({ data: { householdId, name } });
-  revalidatePath("/homes");
+  revalidatePath("/household");
 }
 
 export async function deactivateHomeAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const id = String(formData.get("id"));
   await prisma.home.updateMany({ where: { id, householdId }, data: { isActive: false } });
-  revalidatePath("/homes");
+  revalidatePath("/household");
 }
 
 // Person tags
@@ -31,26 +31,15 @@ export async function deactivateHomeAction(formData: FormData) {
 export async function createPersonTagAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const { name } = nameOnlySchema.parse({ name: formData.get("name") });
-  const isOwner = formData.get("isOwner") === "1";
-  await prisma.personTag.create({ data: { householdId, name, isOwner } });
-  revalidatePath("/people");
+  await prisma.personTag.create({ data: { householdId, name } });
+  revalidatePath("/household");
 }
 
 export async function deactivatePersonTagAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const id = String(formData.get("id"));
   await prisma.personTag.updateMany({ where: { id, householdId }, data: { isActive: false } });
-  revalidatePath("/people");
-}
-
-export async function togglePersonTagOwnerAction(formData: FormData) {
-  const householdId = await getHouseholdId();
-  const id = String(formData.get("id"));
-  const isOwner = formData.get("isOwner") === "1";
-  await prisma.personTag.updateMany({ where: { id, householdId }, data: { isOwner } });
-  revalidatePath("/people");
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
+  revalidatePath("/household");
 }
 
 // Accounts

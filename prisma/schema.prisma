@@ -38,6 +38,8 @@ model User {
   passwordHash String
   createdAt    DateTime  @default(now())
 
+  personTag PersonTag?
+
   @@index([householdId])
   @@map("users")
 }
@@ -61,10 +63,12 @@ model PersonTag {
   household   Household @relation(fields: [householdId], references: [id])
   name        String
   isActive    Boolean   @default(true)
-  isOwner     Boolean   @default(false)
+  userId      String?   @unique
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   transactionPersonTags TransactionPersonTag[]
   spentTransactions     Transaction[]
+  invites               Invite[]
 
   @@index([householdId])
   @@map("person_tags")
@@ -299,6 +303,8 @@ model Invite {
   id          String       @id @default(cuid())
   householdId String
   household   Household    @relation(fields: [householdId], references: [id])
+  personTagId String
+  personTag   PersonTag    @relation(fields: [personTagId], references: [id])
   email       String
   token       String       @unique
   status      InviteStatus @default(pending)
@@ -306,6 +312,7 @@ model Invite {
   createdAt   DateTime     @default(now())
 
   @@index([householdId])
+  @@index([personTagId])
   @@map("invites")
 }
 

@@ -6,7 +6,6 @@ export const createInviteSchema = z.object({
 
 export const acceptInviteSchema = z
   .object({
-    name: z.string().trim().min(1, "Name is required").max(80),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
