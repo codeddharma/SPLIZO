@@ -53,14 +53,17 @@ export function CategoryManager({
   incomeCategories,
   createAction,
   deactivateAction,
+  tabs,
 }: {
   expenseCategories: Category[];
   incomeCategories: Category[];
   createAction: (formData: FormData) => Promise<void>;
   deactivateAction: (formData: FormData) => Promise<void>;
+  tabs?: React.ReactNode;
 }) {
   return (
     <div className="flex w-full flex-col gap-6 p-6">
+      {tabs}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
         <p className="text-sm text-muted-foreground">

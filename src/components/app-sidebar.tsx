@@ -9,7 +9,6 @@ import {
   Upload,
   Wallet,
   Tags,
-  Sparkles,
   Users,
   HandCoins,
   LogOut,
@@ -26,7 +25,6 @@ const NAV = [
   { href: "/import", label: "Import", icon: Upload },
   { href: "/accounts", label: "Accounts", icon: Wallet },
   { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/vendors", label: "Vendors", icon: Sparkles },
   { href: "/household", label: "Household", icon: Users },
   { href: "/loans", label: "Loans", icon: HandCoins },
 ];

@@ -1,4 +1,4 @@
-import { matchVendor } from "./match-vendor";
+import { matchCategoryRule } from "./match-category-rule";
 import type { $Enums } from "@prisma/client";
 
 export async function categorize(
@@ -8,17 +8,21 @@ export async function categorize(
 ): Promise<{
   categoryId: string | null;
   categoryStatus: $Enums.CategoryStatus;
-  vendorId: string | null;
+  categoryRuleId: string | null;
 }> {
-  const vendorMatch = await matchVendor(householdId, description);
+  const match = await matchCategoryRule(householdId, description);
 
   if (manualCategoryId) {
-    return { categoryId: manualCategoryId, categoryStatus: "confirmed", vendorId: vendorMatch.vendorId };
+    return {
+      categoryId: manualCategoryId,
+      categoryStatus: "confirmed",
+      categoryRuleId: match.categoryRuleId,
+    };
   }
 
   return {
-    categoryId: vendorMatch.categoryId,
-    categoryStatus: vendorMatch.status,
-    vendorId: vendorMatch.vendorId,
+    categoryId: match.categoryId,
+    categoryStatus: match.status,
+    categoryRuleId: match.categoryRuleId,
   };
 }

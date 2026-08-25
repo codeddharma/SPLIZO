@@ -104,19 +104,24 @@ export async function getSpentByBreakdown(householdId: string) {
     .sort((a, b) => b.value - a.value);
 }
 
-export async function getVendorBreakdown(householdId: string) {
+export async function getCategoryRuleBreakdown(householdId: string) {
   const { start, end } = monthRange(0);
   const grouped = await prisma.transaction.groupBy({
-    by: ["vendorId"],
-    where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 }, vendorId: { not: null } },
+    by: ["categoryRuleId"],
+    where: {
+      householdId,
+      date: { gte: start, lt: end },
+      amount: { lt: 0 },
+      categoryRuleId: { not: null },
+    },
     _sum: { amount: true },
   });
-  const ids = grouped.map((g) => g.vendorId).filter((id): id is string => !!id);
-  const vendors = await prisma.vendor.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(vendors.map((v) => [v.id, v.name]));
+  const ids = grouped.map((g) => g.categoryRuleId).filter((id): id is string => !!id);
+  const rules = await prisma.categoryRule.findMany({ where: { id: { in: ids } } });
+  const nameById = Object.fromEntries(rules.map((r) => [r.id, r.name]));
   return grouped
     .map((g) => ({
-      name: g.vendorId ? (nameById[g.vendorId] ?? "Unknown") : "Unknown",
+      name: g.categoryRuleId ? (nameById[g.categoryRuleId] ?? "Unknown") : "Unknown",
       value: Math.abs(Number(g._sum.amount ?? 0)),
     }))
     .sort((a, b) => b.value - a.value);

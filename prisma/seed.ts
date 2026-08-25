@@ -98,7 +98,7 @@ async function main() {
     createdExpenseCategories.map((c) => [c.name, c.id])
   );
 
-  const vendorSeeds: { name: string; matchText: string; category: string }[] = [
+  const categoryRuleSeeds: { name: string; matchText: string; category: string }[] = [
     { name: "Swiggy", matchText: "SWIGGY", category: "Dining Out" },
     { name: "Zomato", matchText: "ZOMATO", category: "Dining Out" },
     { name: "Amazon", matchText: "AMAZON", category: "Shopping" },
@@ -110,14 +110,18 @@ async function main() {
     { name: "BigBasket", matchText: "BIGBASKET", category: "Groceries" },
   ];
 
-  for (const v of vendorSeeds) {
-    const categoryId = categoryByName[v.category];
+  for (const r of categoryRuleSeeds) {
+    const categoryId = categoryByName[r.category];
     if (!categoryId) continue;
-    const vendor = await prisma.vendor.create({
-      data: { householdId: household.id, name: v.name, matchText: v.matchText, matchType: "contains" },
-    });
     await prisma.categoryRule.create({
-      data: { householdId: household.id, vendorId: vendor.id, categoryId, source: "user_defined" },
+      data: {
+        householdId: household.id,
+        name: r.name,
+        matchText: r.matchText,
+        matchType: "contains",
+        categoryId,
+        source: "user_defined",
+      },
     });
   }
 

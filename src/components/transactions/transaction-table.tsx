@@ -1,7 +1,7 @@
 import { StatusBadge } from "./status-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { recategorizeTransactionAction } from "@/lib/actions/transaction-actions";
-import { suggestVendorMatchText } from "@/lib/categorization/suggest-match-text";
+import { suggestMatchText } from "@/lib/categorization/suggest-match-text";
 
 type Row = {
   id: string;
@@ -12,7 +12,7 @@ type Row = {
   categoryId: string | null;
   account: { name: string };
   category: { name: string } | null;
-  vendor: { name: string } | null;
+  categoryRule: { name: string } | null;
   homes: { home: { name: string } }[];
   people: { personTag: { name: string } }[];
   spentByPersonTag: { name: string } | null;
@@ -39,7 +39,7 @@ export function TransactionTable({
             <th className="px-4 py-3 font-semibold">Date</th>
             <th className="px-4 py-3 font-semibold">Description</th>
             <th className="px-4 py-3 font-semibold">Account</th>
-            <th className="px-4 py-3 font-semibold">Vendor</th>
+            <th className="px-4 py-3 font-semibold">Rule</th>
             <th className="px-4 py-3 font-semibold">Category</th>
             <th className="px-4 py-3 font-semibold">Place</th>
             <th className="px-4 py-3 font-semibold">Person</th>
@@ -65,7 +65,7 @@ export function TransactionTable({
                 </td>
                 <td className="px-4 py-3 font-medium align-top">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground align-top">{t.account.name}</td>
-                <td className="px-4 py-3 text-muted-foreground align-top">{t.vendor?.name ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground align-top">{t.categoryRule?.name ?? "—"}</td>
                 <td className="px-4 py-3 align-top">
                   {needsAction ? (
                     <form
@@ -106,7 +106,7 @@ export function TransactionTable({
                         <input
                           type="text"
                           name="matchText"
-                          defaultValue={suggestVendorMatchText(t.description)}
+                          defaultValue={suggestMatchText(t.description)}
                           className="w-28 rounded border border-border bg-background px-1.5 py-0.5 text-[11px]"
                         />
                         this way

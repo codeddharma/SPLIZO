@@ -68,7 +68,7 @@ const steps = [
     icon: Wallet,
   },
   {
-    title: "Auto-categorized by vendor",
+    title: "Auto-categorized by rule",
     description: "Rule-based matching sorts transactions instantly, flags anything unsure for review.",
     icon: Sparkles,
   },

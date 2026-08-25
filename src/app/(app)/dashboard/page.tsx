@@ -10,7 +10,7 @@ import {
   getTrend,
   getMonthOverMonthDelta,
   getNeedsAttentionCount,
-  getVendorBreakdown,
+  getCategoryRuleBreakdown,
   getSpentByBreakdown,
 } from "@/lib/queries/dashboard";
 import { getLoanSummary } from "@/lib/queries/loans";
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
     momDelta,
     needsAttention,
     loanSummary,
-    vendorBreakdown,
+    categoryRuleBreakdown,
     spentByBreakdown,
     recent,
   ] = await Promise.all([
@@ -59,14 +59,14 @@ export default async function DashboardPage() {
     getMonthOverMonthDelta(householdId),
     getNeedsAttentionCount(householdId),
     getLoanSummary(householdId),
-    getVendorBreakdown(householdId),
+    getCategoryRuleBreakdown(householdId),
     getSpentByBreakdown(householdId),
     prisma.transaction.findMany({
       where: { householdId },
       include: {
         account: true,
         category: true,
-        vendor: true,
+        categoryRule: true,
         homes: { include: { home: true } },
         people: { include: { personTag: true } },
         spentByPersonTag: true,
@@ -105,8 +105,8 @@ export default async function DashboardPage() {
         <Card title="Income by source">
           <BarBreakdown data={incomeBreakdown} />
         </Card>
-        <Card title="Spend by vendor">
-          <BarBreakdown data={vendorBreakdown} />
+        <Card title="Spend by rule">
+          <BarBreakdown data={categoryRuleBreakdown} />
         </Card>
         <Card title="Spend by (who spent)">
           <BarBreakdown data={spentByBreakdown} />

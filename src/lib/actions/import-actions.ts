@@ -60,7 +60,7 @@ export async function importCsvAction(
       continue;
     }
 
-    const { categoryId, categoryStatus, vendorId } = await categorize(householdId, row.description);
+    const { categoryId, categoryStatus, categoryRuleId } = await categorize(householdId, row.description);
     if (categoryStatus === "auto_mapped") autoMapped++;
     else if (categoryStatus === "needs_review") needsReview++;
     else unmapped++;
@@ -71,7 +71,7 @@ export async function importCsvAction(
         accountId,
         categoryId,
         categoryStatus,
-        vendorId,
+        categoryRuleId,
         amount: row.amount,
         date: row.date,
         description: row.description,

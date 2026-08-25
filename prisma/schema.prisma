@@ -17,7 +17,6 @@ model Household {
   homes         Home[]
   personTags    PersonTag[]
   categories    Category[]
-  vendors       Vendor[]
   categoryRules CategoryRule[]
   accounts      Account[]
   transactions  Transaction[]
@@ -98,44 +97,34 @@ model Category {
   @@map("categories")
 }
 
-model Vendor {
-  id          String    @id @default(cuid())
+// A description-text match rule that auto-assigns a category (e.g. "contains
+// SWIGGY" -> Dining Out). categoryId is nullable: a rule can be detected via
+// matching before a category has been picked for it (needs_review).
+model CategoryRule {
+  id          String              @id @default(cuid())
   householdId String
-  household   Household @relation(fields: [householdId], references: [id])
+  household   Household           @relation(fields: [householdId], references: [id])
   name        String
   matchText   String
-  matchType   VendorMatchType
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  matchType   MatchType
+  categoryId  String?
+  category    Category?           @relation(fields: [categoryId], references: [id])
+  source      CategoryRuleSource?
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
 
-  categoryRule CategoryRule?
   transactions Transaction[]
-
-  @@index([householdId])
-  @@map("vendors")
-}
-
-model CategoryRule {
-  id          String           @id @default(cuid())
-  householdId String
-  household   Household        @relation(fields: [householdId], references: [id])
-  vendorId    String           @unique
-  vendor      Vendor           @relation(fields: [vendorId], references: [id])
-  categoryId  String
-  category    Category         @relation(fields: [categoryId], references: [id])
-  source      VendorRuleSource
-  createdAt   DateTime         @default(now())
 
   @@index([householdId])
   @@map("category_rules")
 }
 
-enum VendorMatchType {
+enum MatchType {
   exact
   contains
 }
 
-enum VendorRuleSource {
+enum CategoryRuleSource {
   user_defined
   learned
 }
@@ -185,8 +174,8 @@ model Transaction {
   categoryId     String?
   category       Category?         @relation(fields: [categoryId], references: [id])
   categoryStatus CategoryStatus    @default(unmapped)
-  vendorId       String?
-  vendor         Vendor?           @relation(fields: [vendorId], references: [id])
+  categoryRuleId String?
+  categoryRule   CategoryRule?     @relation(fields: [categoryRuleId], references: [id])
   spentByPersonTagId String?
   spentByPersonTag   PersonTag?    @relation(fields: [spentByPersonTagId], references: [id])
   amount         Decimal           @db.Decimal(12, 2)

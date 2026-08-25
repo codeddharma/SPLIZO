@@ -35,7 +35,7 @@ export default async function TransactionsPage({
       include: {
         account: true,
         category: true,
-        vendor: true,
+        categoryRule: true,
         homes: { include: { home: true } },
         people: { include: { personTag: true } },
         spentByPersonTag: true,

@@ -16,7 +16,7 @@ export const categorySchema = z.object({
   kind: z.enum(["income", "expense"]),
 });
 
-export const vendorSchema = z.object({
+export const categoryRuleSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
   matchText: z.string().trim().min(1, "Match text is required").max(120),
   matchType: z.enum(["exact", "contains"]),

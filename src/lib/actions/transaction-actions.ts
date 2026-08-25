@@ -45,7 +45,7 @@ export async function createTransactionAction(formData: FormData) {
   const signedAmount =
     parsed.direction === "out" ? -Math.abs(parsed.amount) : Math.abs(parsed.amount);
 
-  const { categoryId, categoryStatus, vendorId } = await categorize(
+  const { categoryId, categoryStatus, categoryRuleId } = await categorize(
     householdId,
     parsed.description,
     parsed.categoryId || null
@@ -62,7 +62,7 @@ export async function createTransactionAction(formData: FormData) {
       accountId: parsed.accountId,
       categoryId,
       categoryStatus,
-      vendorId,
+      categoryRuleId,
       spentByPersonTagId,
       amount: signedAmount,
       date: new Date(parsed.date),
@@ -94,23 +94,29 @@ export async function recategorizeTransactionAction(formData: FormData) {
   const saveRule = formData.get("saveRule");
   const matchText = String(formData.get("matchText") ?? "").trim();
   if (saveRule && matchText) {
-    if (transaction.vendorId) {
-      // A vendor was already detected for this transaction — just (re)map it to this category.
-      await prisma.categoryRule.upsert({
-        where: { vendorId: transaction.vendorId },
-        create: { householdId, vendorId: transaction.vendorId, categoryId, source: "learned" },
-        update: { categoryId },
+    if (transaction.categoryRuleId) {
+      // A rule already matched this transaction — just (re)map it to this category.
+      await prisma.categoryRule.update({
+        where: { id: transaction.categoryRuleId },
+        data: { categoryId, source: "learned" },
       });
     } else {
-      const vendor = await prisma.vendor.create({
-        data: { householdId, name: matchText, matchText, matchType: "contains" },
+      const rule = await prisma.categoryRule.create({
+        data: {
+          householdId,
+          name: matchText,
+          matchText,
+          matchType: "contains",
+          categoryId,
+          source: "learned",
+        },
       });
-      await prisma.categoryRule.create({
-        data: { householdId, vendorId: vendor.id, categoryId, source: "learned" },
+      await prisma.transaction.updateMany({
+        where: { id, householdId },
+        data: { categoryRuleId: rule.id },
       });
-      await prisma.transaction.updateMany({ where: { id, householdId }, data: { vendorId: vendor.id } });
     }
-    revalidatePath("/vendors");
+    revalidatePath("/categories");
   }
 
   revalidateAll();
