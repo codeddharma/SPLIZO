@@ -22,7 +22,7 @@ export function SimpleTagManager({
   tabs?: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+    <div className="flex w-full flex-col gap-6 p-6">
       {tabs}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
