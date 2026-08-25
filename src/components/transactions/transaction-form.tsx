@@ -11,16 +11,14 @@ export function TransactionForm({
   categories,
   homes,
   people,
-  users,
-  currentUserId,
+  owners,
   createAction,
 }: {
   accounts: Option[];
   categories: Option[];
   homes: Option[];
   people: Option[];
-  users: Option[];
-  currentUserId: string;
+  owners: Option[];
   createAction: (formData: FormData) => Promise<void>;
 }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -141,17 +139,30 @@ export function TransactionForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Spent by</label>
-          <select
-            name="spentByUserId"
-            defaultValue={currentUserId}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          >
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
+          {owners.length > 0 ? (
+            <select
+              name="spentByPersonTagId"
+              required
+              defaultValue=""
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="" disabled>
+                Select who spent
               </option>
-            ))}
-          </select>
+              {owners.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select
+              disabled
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground"
+            >
+              <option>Mark someone as Owner in People &amp; Places</option>
+            </select>
+          )}
         </div>
       </div>
 

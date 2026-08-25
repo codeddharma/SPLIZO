@@ -26,7 +26,7 @@ export async function getHeadlineTotals(householdId: string, monthsAgo = 0) {
 
 async function groupExpenseByField(
   householdId: string,
-  field: "categoryId" | "accountId" | "spentByUserId",
+  field: "categoryId" | "accountId" | "spentByPersonTagId",
   monthsAgo = 0
 ) {
   const { start, end } = monthRange(monthsAgo);
@@ -95,10 +95,10 @@ export async function getPersonSplit(householdId: string) {
 }
 
 export async function getSpentByBreakdown(householdId: string) {
-  const grouped = await groupExpenseByField(householdId, "spentByUserId");
+  const grouped = await groupExpenseByField(householdId, "spentByPersonTagId");
   const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
-  const users = await prisma.user.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(users.map((u) => [u.id, u.name]));
+  const owners = await prisma.personTag.findMany({ where: { id: { in: ids } } });
+  const nameById = Object.fromEntries(owners.map((o) => [o.id, o.name]));
   return grouped
     .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unassigned", value: g.value }))
     .sort((a, b) => b.value - a.value);

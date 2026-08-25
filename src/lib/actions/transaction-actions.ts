@@ -36,7 +36,7 @@ export async function createTransactionAction(formData: FormData) {
     personTagIds: formData.getAll("personTagIds").map(String),
   });
 
-  const spentByUserId = String(formData.get("spentByUserId") ?? "") || null;
+  const spentByPersonTagId = String(formData.get("spentByPersonTagId") ?? "") || null;
 
   if (parsed.direction === "out" && (parsed.homeIds.length === 0 || parsed.personTagIds.length === 0)) {
     throw new Error("At least one place and one person are required for expense transactions.");
@@ -63,7 +63,7 @@ export async function createTransactionAction(formData: FormData) {
       categoryId,
       categoryStatus,
       vendorId,
-      spentByUserId,
+      spentByPersonTagId,
       amount: signedAmount,
       date: new Date(parsed.date),
       description: parsed.description,

@@ -69,7 +69,7 @@ export default async function DashboardPage() {
         vendor: true,
         homes: { include: { home: true } },
         people: { include: { personTag: true } },
-        spentByUser: true,
+        spentByPersonTag: true,
       },
       orderBy: { date: "desc" },
       take: 8,

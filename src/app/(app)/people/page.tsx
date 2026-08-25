@@ -3,6 +3,7 @@ import { getHouseholdId } from "@/lib/session";
 import {
   createPersonTagAction,
   deactivatePersonTagAction,
+  togglePersonTagOwnerAction,
   createHomeAction,
   deactivateHomeAction,
 } from "@/lib/actions/reference-data-actions";
@@ -53,6 +54,8 @@ export default async function PeoplePlacesPage({
       label="Person"
       placeholder="e.g. Mom"
       tabs={<EntityTabs active="people" />}
+      showOwnerToggle
+      toggleOwnerAction={togglePersonTagOwnerAction}
     />
   );
 }

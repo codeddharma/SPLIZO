@@ -15,7 +15,7 @@ type Row = {
   vendor: { name: string } | null;
   homes: { home: { name: string } }[];
   people: { personTag: { name: string } }[];
-  spentByUser: { name: string } | null;
+  spentByPersonTag: { name: string } | null;
 };
 
 type Category = { id: string; name: string };
@@ -126,7 +126,7 @@ export function TransactionTable({
                   {t.people.length > 0 ? t.people.map((p) => p.personTag.name).join(", ") : "—"}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground align-top">
-                  {t.spentByUser?.name ?? "—"}
+                  {t.spentByPersonTag?.name ?? "—"}
                 </td>
                 <td
                   className={`px-4 py-3 text-right font-semibold align-top ${

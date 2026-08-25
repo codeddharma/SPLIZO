@@ -1,6 +1,7 @@
 import { SubmitButton } from "@/components/ui/submit-button";
+import { OwnerToggle } from "./owner-toggle";
 
-type Item = { id: string; name: string };
+type Item = { id: string; name: string; isOwner?: boolean };
 
 export function SimpleTagManager({
   items,
@@ -11,6 +12,8 @@ export function SimpleTagManager({
   label,
   placeholder,
   tabs,
+  showOwnerToggle = false,
+  toggleOwnerAction,
 }: {
   items: Item[];
   createAction: (formData: FormData) => Promise<void>;
@@ -20,6 +23,8 @@ export function SimpleTagManager({
   label: string;
   placeholder: string;
   tabs?: React.ReactNode;
+  showOwnerToggle?: boolean;
+  toggleOwnerAction?: (formData: FormData) => Promise<void>;
 }) {
   return (
     <div className="flex w-full flex-col gap-6 p-6">
@@ -29,17 +34,29 @@ export function SimpleTagManager({
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <form action={createAction} className="flex gap-2">
+      <form action={createAction} className="flex items-center gap-2">
         <input
           name="name"
           placeholder={placeholder}
           required
           className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm"
         />
+        {showOwnerToggle && (
+          <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+            <input type="checkbox" name="isOwner" value="1" className="h-3.5 w-3.5" />
+            Owner
+          </label>
+        )}
         <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
           Add {label}
         </SubmitButton>
       </form>
+      {showOwnerToggle && (
+        <p className="-mt-4 text-xs text-muted-foreground">
+          Owners can be selected as &quot;Spent by&quot; on transactions — mark the people who actually
+          have Splizo access (you and your spouse).
+        </p>
+      )}
 
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
         {items.length === 0 && (
@@ -50,15 +67,24 @@ export function SimpleTagManager({
         {items.map((item) => (
           <div key={item.id} className="flex items-center justify-between px-4 py-3">
             <span className="text-sm font-medium">{item.name}</span>
-            <form action={deactivateAction}>
-              <input type="hidden" name="id" value={item.id} />
-              <SubmitButton
-                className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
-                pendingText="Removing…"
-              >
-                Remove
-              </SubmitButton>
-            </form>
+            <div className="flex items-center gap-4">
+              {showOwnerToggle && toggleOwnerAction && (
+                <OwnerToggle
+                  id={item.id}
+                  defaultChecked={!!item.isOwner}
+                  action={toggleOwnerAction}
+                />
+              )}
+              <form action={deactivateAction}>
+                <input type="hidden" name="id" value={item.id} />
+                <SubmitButton
+                  className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
+                  pendingText="Removing…"
+                >
+                  Remove
+                </SubmitButton>
+              </form>
+            </div>
           </div>
         ))}
       </div>

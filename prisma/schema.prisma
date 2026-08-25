@@ -37,8 +37,6 @@ model User {
   passwordHash String
   createdAt    DateTime  @default(now())
 
-  spentTransactions Transaction[]
-
   @@index([householdId])
   @@map("users")
 }
@@ -62,8 +60,10 @@ model PersonTag {
   household   Household @relation(fields: [householdId], references: [id])
   name        String
   isActive    Boolean   @default(true)
+  isOwner     Boolean   @default(false)
 
   transactionPersonTags TransactionPersonTag[]
+  spentTransactions     Transaction[]
 
   @@index([householdId])
   @@map("person_tags")
@@ -182,8 +182,8 @@ model Transaction {
   categoryStatus CategoryStatus    @default(unmapped)
   vendorId       String?
   vendor         Vendor?           @relation(fields: [vendorId], references: [id])
-  spentByUserId  String?
-  spentByUser    User?             @relation(fields: [spentByUserId], references: [id])
+  spentByPersonTagId String?
+  spentByPersonTag   PersonTag?    @relation(fields: [spentByPersonTagId], references: [id])
   amount         Decimal           @db.Decimal(12, 2)
   date           DateTime
   description    String
