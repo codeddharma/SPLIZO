@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getHouseholdId } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 import { createTransactionAction } from "@/lib/actions/transaction-actions";
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { TransactionTable } from "@/components/transactions/transaction-table";
@@ -18,14 +18,16 @@ export default async function TransactionsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status } = await searchParams;
-  const householdId = await getHouseholdId();
+  const session = await requireSession();
+  const householdId = session.user.householdId;
   const statusFilter = status && STATUS_FILTERS[status] ? STATUS_FILTERS[status] : {};
 
-  const [accounts, categories, homes, people, transactions] = await Promise.all([
+  const [accounts, categories, homes, people, users, transactions] = await Promise.all([
     prisma.account.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.category.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.home.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.personTag.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { householdId }, orderBy: { name: "asc" } }),
     prisma.transaction.findMany({
       where: { householdId, ...statusFilter },
       include: {
@@ -34,6 +36,7 @@ export default async function TransactionsPage({
         vendor: true,
         homes: { include: { home: true } },
         people: { include: { personTag: true } },
+        spentByUser: true,
       },
       orderBy: { date: "desc" },
       take: 50,
@@ -52,6 +55,8 @@ export default async function TransactionsPage({
           categories={categories}
           homes={homes}
           people={people}
+          users={users}
+          currentUserId={session.user.id}
           createAction={createTransactionAction}
         />
       </div>

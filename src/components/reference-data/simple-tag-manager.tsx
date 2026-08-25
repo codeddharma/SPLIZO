@@ -10,6 +10,7 @@ export function SimpleTagManager({
   description,
   label,
   placeholder,
+  tabs,
 }: {
   items: Item[];
   createAction: (formData: FormData) => Promise<void>;
@@ -18,9 +19,11 @@ export function SimpleTagManager({
   description: string;
   label: string;
   placeholder: string;
+  tabs?: React.ReactNode;
 }) {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
+      {tabs}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         <p className="text-sm text-muted-foreground">{description}</p>

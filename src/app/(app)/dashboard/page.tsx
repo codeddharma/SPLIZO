@@ -11,6 +11,7 @@ import {
   getMonthOverMonthDelta,
   getNeedsAttentionCount,
   getVendorBreakdown,
+  getSpentByBreakdown,
 } from "@/lib/queries/dashboard";
 import { getLoanSummary } from "@/lib/queries/loans";
 import { HeadlineCards } from "@/components/dashboard/headline-cards";
@@ -45,6 +46,7 @@ export default async function DashboardPage() {
     needsAttention,
     loanSummary,
     vendorBreakdown,
+    spentByBreakdown,
     recent,
   ] = await Promise.all([
     getHeadlineTotals(householdId),
@@ -58,6 +60,7 @@ export default async function DashboardPage() {
     getNeedsAttentionCount(householdId),
     getLoanSummary(householdId),
     getVendorBreakdown(householdId),
+    getSpentByBreakdown(householdId),
     prisma.transaction.findMany({
       where: { householdId },
       include: {
@@ -66,6 +69,7 @@ export default async function DashboardPage() {
         vendor: true,
         homes: { include: { home: true } },
         people: { include: { personTag: true } },
+        spentByUser: true,
       },
       orderBy: { date: "desc" },
       take: 8,
@@ -89,7 +93,7 @@ export default async function DashboardPage() {
         <Card title="Spend trend (6 months)">
           <TrendLine data={trend} />
         </Card>
-        <Card title="Spend by home">
+        <Card title="Spend by place">
           <BarBreakdown data={homeBreakdown} />
         </Card>
         <Card title="Spend by account">
@@ -103,6 +107,9 @@ export default async function DashboardPage() {
         </Card>
         <Card title="Spend by vendor">
           <BarBreakdown data={vendorBreakdown} />
+        </Card>
+        <Card title="Spend by (who spent)">
+          <BarBreakdown data={spentByBreakdown} />
         </Card>
         <Card title="Month-over-month (expense categories)">
           <MomDeltaTable data={momDelta} />

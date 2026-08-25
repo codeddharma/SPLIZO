@@ -10,7 +10,6 @@ import {
   Wallet,
   Tags,
   Sparkles,
-  Home as HomeIcon,
   Users,
   HandCoins,
   LogOut,
@@ -28,8 +27,7 @@ const NAV = [
   { href: "/accounts", label: "Accounts", icon: Wallet },
   { href: "/categories", label: "Categories", icon: Tags },
   { href: "/vendors", label: "Vendors", icon: Sparkles },
-  { href: "/homes", label: "Homes", icon: HomeIcon },
-  { href: "/people", label: "People", icon: Users },
+  { href: "/people", label: "People & Places", icon: Users },
   { href: "/loans", label: "Loans", icon: HandCoins },
 ];
 

@@ -15,6 +15,7 @@ type Row = {
   vendor: { name: string } | null;
   homes: { home: { name: string } }[];
   people: { personTag: { name: string } }[];
+  spentByUser: { name: string } | null;
 };
 
 type Category = { id: string; name: string };
@@ -40,15 +41,16 @@ export function TransactionTable({
             <th className="px-4 py-3 font-semibold">Account</th>
             <th className="px-4 py-3 font-semibold">Vendor</th>
             <th className="px-4 py-3 font-semibold">Category</th>
-            <th className="px-4 py-3 font-semibold">Home</th>
+            <th className="px-4 py-3 font-semibold">Place</th>
             <th className="px-4 py-3 font-semibold">Person</th>
+            <th className="px-4 py-3 font-semibold">Spent by</th>
             <th className="px-4 py-3 text-right font-semibold">Amount</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {transactions.length === 0 && (
             <tr>
-              <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+              <td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">
                 No transactions yet.
               </td>
             </tr>
@@ -122,6 +124,9 @@ export function TransactionTable({
                 </td>
                 <td className="px-4 py-3 text-muted-foreground align-top">
                   {t.people.length > 0 ? t.people.map((p) => p.personTag.name).join(", ") : "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground align-top">
+                  {t.spentByUser?.name ?? "—"}
                 </td>
                 <td
                   className={`px-4 py-3 text-right font-semibold align-top ${

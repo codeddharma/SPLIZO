@@ -19,12 +19,16 @@ export function AddTransactionDialog({
   categories,
   homes,
   people,
+  users,
+  currentUserId,
   createAction,
 }: {
   accounts: Option[];
   categories: Option[];
   homes: Option[];
   people: Option[];
+  users: Option[];
+  currentUserId: string;
   createAction: (formData: FormData) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -52,6 +56,8 @@ export function AddTransactionDialog({
           categories={categories}
           homes={homes}
           people={people}
+          users={users}
+          currentUserId={currentUserId}
           createAction={handleSubmit}
         />
       </DialogContent>
