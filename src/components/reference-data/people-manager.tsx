@@ -1,8 +1,6 @@
-import { createPersonTagAction, deactivatePersonTagAction } from "@/lib/actions/reference-data-actions";
-import { removeAccessAction, revokeInviteAction } from "@/lib/actions/invite-actions";
+import { createPersonTagAction } from "@/lib/actions/reference-data-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { InviteButton } from "@/components/household/invite-button";
-import { CopyInviteLink } from "@/components/household/copy-invite-link";
+import { PersonRowActions } from "@/components/reference-data/person-row-actions";
 
 type PersonRow = {
   id: string;
@@ -58,53 +56,25 @@ export function PeopleManager({
           <div className="p-6 text-center text-sm text-muted-foreground">No people yet.</div>
         )}
         {people.map((person) => {
-          const pendingInvite = inviteByPersonTagId[person.id];
+          const pendingInvite = inviteByPersonTagId[person.id] ?? null;
           return (
-            <div
-              key={person.id}
-              className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <span className="text-sm font-medium">{person.name}</span>
-              <div className="flex items-center gap-3">
-                {person.user ? (
-                  <>
-                    <span className="text-xs text-muted-foreground">{person.user.email}</span>
-                    <form action={removeAccessAction}>
-                      <input type="hidden" name="personTagId" value={person.id} />
-                      <SubmitButton
-                        className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
-                        pendingText="Removing…"
-                      >
-                        Remove access
-                      </SubmitButton>
-                    </form>
-                  </>
-                ) : pendingInvite ? (
-                  <>
-                    <CopyInviteLink link={`${origin}/invite/${pendingInvite.token}`} />
-                    <form action={revokeInviteAction}>
-                      <input type="hidden" name="id" value={pendingInvite.id} />
-                      <SubmitButton
-                        className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
-                        pendingText="Cancelling…"
-                      >
-                        Cancel invite
-                      </SubmitButton>
-                    </form>
-                  </>
-                ) : (
-                  <InviteButton personTagId={person.id} />
+            <div key={person.id} className="flex items-center justify-between px-4 py-3">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{person.name}</span>
+                {person.user && (
+                  <span className="text-xs text-muted-foreground">{person.user.email}</span>
                 )}
-                <form action={deactivatePersonTagAction}>
-                  <input type="hidden" name="id" value={person.id} />
-                  <SubmitButton
-                    className="text-xs font-semibold text-muted-foreground transition-colors hover:text-expense"
-                    pendingText="Removing…"
-                  >
-                    Remove
-                  </SubmitButton>
-                </form>
+                {!person.user && pendingInvite && (
+                  <span className="text-xs text-muted-foreground">Invite pending</span>
+                )}
               </div>
+              <PersonRowActions
+                personId={person.id}
+                personName={person.name}
+                accessEmail={person.user?.email ?? null}
+                pendingInvite={pendingInvite}
+                origin={origin}
+              />
             </div>
           );
         })}
