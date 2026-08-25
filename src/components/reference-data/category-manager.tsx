@@ -62,9 +62,9 @@ export function CategoryManager({
   tabs?: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
+    <div className="flex h-full w-full flex-col gap-6 p-6">
       {tabs}
-      <div>
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
         <p className="text-sm text-muted-foreground">
           Default categories (
@@ -74,7 +74,7 @@ export function CategoryManager({
 
       <form
         action={createAction}
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
+        className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
       >
         <div className="flex flex-1 flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Name</label>
@@ -102,16 +102,18 @@ export function CategoryManager({
         </SubmitButton>
       </form>
 
-      <CategoryGroup
-        title="Expense categories"
-        categories={expenseCategories}
-        deactivateAction={deactivateAction}
-      />
-      <CategoryGroup
-        title="Income categories"
-        categories={incomeCategories}
-        deactivateAction={deactivateAction}
-      />
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+        <CategoryGroup
+          title="Expense categories"
+          categories={expenseCategories}
+          deactivateAction={deactivateAction}
+        />
+        <CategoryGroup
+          title="Income categories"
+          categories={incomeCategories}
+          deactivateAction={deactivateAction}
+        />
+      </div>
     </div>
   );
 }

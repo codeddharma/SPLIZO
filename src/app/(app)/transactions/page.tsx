@@ -46,8 +46,8 @@ export default async function TransactionsPage({
   ]);
 
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex h-full w-full flex-col gap-6 p-6">
+      <div className="flex shrink-0 items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
           <p className="text-sm text-muted-foreground">Every transaction, filterable by status.</p>
@@ -62,9 +62,13 @@ export default async function TransactionsPage({
         />
       </div>
 
-      <StatusTabs active={status && STATUS_FILTERS[status] ? status : "all"} />
+      <div className="shrink-0">
+        <StatusTabs active={status && STATUS_FILTERS[status] ? status : "all"} />
+      </div>
 
-      <TransactionTable transactions={transactions} categories={categories} showActions />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <TransactionTable transactions={transactions} categories={categories} showActions />
+      </div>
     </div>
   );
 }

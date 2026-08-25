@@ -19,8 +19,8 @@ export default async function LoansPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">
-      <div>
+    <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-6 p-6">
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight">Loans</h1>
         <p className="text-sm text-muted-foreground">
           Money lent to or borrowed from family/relatives — tracked separately from household
@@ -28,7 +28,7 @@ export default async function LoansPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid shrink-0 grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">Outstanding — lent</div>
           <div className="text-xl font-bold text-income">
@@ -45,7 +45,7 @@ export default async function LoansPage() {
 
       <form
         action={createContactAction}
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
+        className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
       >
         <div className="flex flex-1 flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Contact name</label>
@@ -69,13 +69,13 @@ export default async function LoansPage() {
       </form>
 
       {contacts.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+        <div className="shrink-0 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
           Add a contact above before logging a loan.
         </div>
       ) : (
         <form
           action={createLoanAction}
-          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end sm:flex-wrap"
+          className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end sm:flex-wrap"
         >
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-muted-foreground">Contact</label>
@@ -130,7 +130,7 @@ export default async function LoansPage() {
         </form>
       )}
 
-      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
         {loans.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">No loans logged yet.</div>
         )}

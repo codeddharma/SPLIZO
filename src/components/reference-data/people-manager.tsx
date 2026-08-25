@@ -28,9 +28,9 @@ export function PeopleManager({
   const inviteByPersonTagId = Object.fromEntries(invites.map((i) => [i.personTagId, i]));
 
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
+    <div className="flex h-full w-full flex-col gap-6 p-6">
       {tabs}
-      <div>
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight">People</h1>
         <p className="text-sm text-muted-foreground">
           You, your spouse, joint, even &apos;Mom&apos; or &apos;Dad&apos;. Invite someone to give
@@ -39,7 +39,7 @@ export function PeopleManager({
         </p>
       </div>
 
-      <form action={createPersonTagAction} className="flex gap-2">
+      <form action={createPersonTagAction} className="flex shrink-0 gap-2">
         <input
           name="name"
           placeholder="e.g. Mom"
@@ -51,7 +51,7 @@ export function PeopleManager({
         </SubmitButton>
       </form>
 
-      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
         {people.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">No people yet.</div>
         )}

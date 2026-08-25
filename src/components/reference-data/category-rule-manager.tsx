@@ -25,9 +25,9 @@ export function CategoryRuleManager({
   tabs?: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
+    <div className="flex h-full w-full flex-col gap-6 p-6">
       {tabs}
-      <div>
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight">Category Rules</h1>
         <p className="text-sm text-muted-foreground">
           If a transaction&apos;s description contains this text, auto-assign it to this category
@@ -38,7 +38,7 @@ export function CategoryRuleManager({
 
       <form
         action={createAction}
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end sm:flex-wrap"
+        className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end sm:flex-wrap"
       >
         <div className="flex flex-1 flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Rule name</label>
@@ -89,7 +89,7 @@ export function CategoryRuleManager({
         </SubmitButton>
       </form>
 
-      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
         {rules.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">No rules yet.</div>
         )}

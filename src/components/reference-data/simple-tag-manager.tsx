@@ -22,14 +22,14 @@ export function SimpleTagManager({
   tabs?: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
+    <div className="flex h-full w-full flex-col gap-6 p-6">
       {tabs}
-      <div>
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <form action={createAction} className="flex gap-2">
+      <form action={createAction} className="flex shrink-0 gap-2">
         <input
           name="name"
           placeholder={placeholder}
@@ -41,7 +41,7 @@ export function SimpleTagManager({
         </SubmitButton>
       </form>
 
-      <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
         {items.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">
             No {label.toLowerCase()}s yet.
