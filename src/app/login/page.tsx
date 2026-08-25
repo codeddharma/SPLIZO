@@ -23,9 +23,9 @@ async function loginAction(formData: FormData) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; joined?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, joined } = await searchParams;
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6">
@@ -35,6 +35,9 @@ export default async function LoginPage({
         className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-border bg-card p-6"
       >
         <h1 className="text-xl font-bold">Log in</h1>
+        {joined && (
+          <p className="text-sm text-income">Account created — log in with your new password.</p>
+        )}
         {error && <p className="text-sm text-expense">Invalid email or password.</p>}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email" className="text-sm font-semibold text-muted-foreground">

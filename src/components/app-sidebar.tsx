@@ -12,6 +12,7 @@ import {
   Sparkles,
   Users,
   HandCoins,
+  UserPlus,
   LogOut,
   Menu,
   X,
@@ -29,6 +30,7 @@ const NAV = [
   { href: "/vendors", label: "Vendors", icon: Sparkles },
   { href: "/people", label: "People & Places", icon: Users },
   { href: "/loans", label: "Loans", icon: HandCoins },
+  { href: "/household", label: "Household", icon: UserPlus },
 ];
 
 export function AppSidebar({ user }: { user: { name: string; email: string } }) {

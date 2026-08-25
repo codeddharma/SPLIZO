@@ -24,6 +24,7 @@ model Household {
   importBatches ImportBatch[]
   contacts      Contact[]
   loans         Loan[]
+  invites       Invite[]
 
   @@map("households")
 }
@@ -286,6 +287,26 @@ model Loan {
 
   @@index([householdId])
   @@map("loans")
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  expired
+}
+
+model Invite {
+  id          String       @id @default(cuid())
+  householdId String
+  household   Household    @relation(fields: [householdId], references: [id])
+  email       String
+  token       String       @unique
+  status      InviteStatus @default(pending)
+  expiresAt   DateTime
+  createdAt   DateTime     @default(now())
+
+  @@index([householdId])
+  @@map("invites")
 }
 
 model LoanRepayment {
