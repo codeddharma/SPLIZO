@@ -1,6 +1,7 @@
 import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -69,6 +70,12 @@ export default async function LoginPage({
         >
           Log in
         </SubmitButton>
+        <p className="text-center text-sm text-muted-foreground">
+          New to Splizo?{" "}
+          <Link href="/signup" className="text-primary hover:underline">
+            Create a household
+          </Link>
+        </p>
       </form>
     </div>
   );
