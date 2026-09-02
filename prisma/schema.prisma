@@ -183,6 +183,7 @@ model Transaction {
   description    String
   notes          String?
   source         TransactionSource
+  externalRef    String?
   importBatchId  String?
   importBatch    ImportBatch?      @relation(fields: [importBatchId], references: [id])
   rawPayload     Json?
@@ -193,6 +194,7 @@ model Transaction {
   homes  TransactionHome[]
   people TransactionPersonTag[]
 
+  @@unique([householdId, externalRef])
   @@index([householdId, date])
   @@index([householdId, categoryStatus])
   @@map("transactions")

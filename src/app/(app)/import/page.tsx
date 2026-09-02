@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
 import { CsvUploader } from "@/components/import/csv-uploader";
+import { PdfUploader } from "@/components/import/pdf-uploader";
 
 export default async function ImportPage() {
   const householdId = await getHouseholdId();
@@ -31,6 +32,16 @@ export default async function ImportPage() {
       ) : (
         <CsvUploader accounts={accounts} />
       )}
+
+      <div>
+        <h2 className="text-lg font-bold tracking-tight">Import from PDF</h2>
+        <p className="text-sm text-muted-foreground">
+          Supports ICICI Bank and Google Pay statements. GPay statements resolve each
+          transaction&apos;s account automatically (creating a new one if it doesn&apos;t match
+          anything yet).
+        </p>
+      </div>
+      <PdfUploader accounts={accounts} />
 
       {batches.length > 0 && (
         <div className="flex flex-col gap-2">
