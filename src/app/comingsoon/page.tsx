@@ -1,134 +1,123 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Wallet, Sparkles, LayoutDashboard, HandCoins } from "lucide-react";
+import { TrendingUp, Wallet } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
-};
+function DashboardScreen() {
+  return (
+    <div className="flex h-full w-full flex-col gap-2.5 bg-[#12141c] p-3 text-white">
+      <div className="flex items-center justify-between">
+        <div className="h-2 w-16 rounded-full bg-white/20" />
+        <div className="h-5 w-5 rounded-full bg-primary/40" />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-income/15 p-2">
+          <TrendingUp className="mb-1 h-3 w-3 text-income" />
+          <div className="h-1.5 w-8 rounded-full bg-income/40" />
+          <div className="mt-1 h-2.5 w-10 rounded-full bg-income/70" />
+        </div>
+        <div className="rounded-lg bg-expense/15 p-2">
+          <Wallet className="mb-1 h-3 w-3 text-expense" />
+          <div className="h-1.5 w-8 rounded-full bg-expense/40" />
+          <div className="mt-1 h-2.5 w-10 rounded-full bg-expense/70" />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 rounded-lg bg-white/5 p-2">
+        <div
+          className="h-10 w-10 shrink-0 rounded-full"
+          style={{
+            background:
+              "conic-gradient(var(--color-primary) 0deg 140deg, var(--color-income) 140deg 230deg, var(--color-warning) 230deg 300deg, rgba(255,255,255,0.15) 300deg 360deg)",
+          }}
+        />
+        <div className="flex-1 space-y-1">
+          <div className="h-1.5 w-full rounded-full bg-white/15" />
+          <div className="h-1.5 w-2/3 rounded-full bg-white/15" />
+        </div>
+      </div>
+      <div className="flex flex-1 items-end gap-1.5 rounded-lg bg-white/5 p-2 pb-3">
+        {[40, 65, 35, 80, 55, 90, 50].map((h, i) => (
+          <div
+            key={i}
+            className="flex-1 rounded-t-sm bg-gradient-to-t from-primary to-income"
+            style={{ height: `${h}%` }}
+          />
+        ))}
+      </div>
+      <div className="space-y-1.5">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center justify-between rounded-md bg-white/5 px-2 py-1.5">
+            <div className="flex items-center gap-1.5">
+              <div className="h-4 w-4 rounded bg-primary/30" />
+              <div className="h-1.5 w-10 rounded-full bg-white/20" />
+            </div>
+            <div className="h-1.5 w-6 rounded-full bg-white/20" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-const steps = [
-  {
-    title: "Add every account & card",
-    description: "Bank, credit card, wallet — one home for all of it, tagged by who and where.",
-    icon: Wallet,
-  },
-  {
-    title: "Auto-categorized by rule",
-    description: "Rule-based matching sorts transactions instantly, flags anything unsure for review.",
-    icon: Sparkles,
-  },
-  {
-    title: "One dashboard, every home",
-    description: "Rented, owned, parents' — see spend split by home, by person, by account.",
-    icon: LayoutDashboard,
-  },
-];
+function Phone({
+  className,
+  rotate = 0,
+  scale = 1,
+}: {
+  className?: string;
+  rotate?: number;
+  scale?: number;
+}) {
+  return (
+    <div
+      className={`absolute rounded-[2.2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-2xl ${className}`}
+      style={{ transform: `translateX(-50%) rotate(${rotate}deg) scale(${scale})` }}
+    >
+      <div className="absolute top-0 left-1/2 z-10 h-4 w-20 -translate-x-1/2 rounded-b-xl bg-neutral-900" />
+      <div className="h-[380px] w-[190px] overflow-hidden rounded-[1.8rem]">
+        <DashboardScreen />
+      </div>
+    </div>
+  );
+}
 
 export default function ComingSoonPage() {
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl"
-          animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-1/3 -right-32 h-[28rem] w-[28rem] rounded-full bg-income/10 blur-3xl"
-          animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-
-      <header className="relative z-10 flex items-center justify-between border-b border-border/60 px-6 py-4 backdrop-blur-sm">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
+      <div className="flex items-center justify-between px-6 py-4">
         <Logo />
         <ThemeToggle />
-      </header>
+      </div>
 
-      <main className="relative z-10 flex flex-1 flex-col items-center px-6 py-24">
+      <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-4">
         <motion.div
-          initial="hidden"
-          animate="show"
-          variants={container}
-          className="flex flex-col items-center gap-5 text-center"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
         >
-          <motion.span
-            variants={item}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-            </span>
-            Launching soon
-          </motion.span>
-
-          <motion.h1
-            variants={item}
-            className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl"
-          >
-            Household finance,{" "}
+          <h1 className="text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl">
+            Household Finance
+            <br />
             <span className="bg-gradient-to-r from-primary to-income bg-clip-text text-transparent">
-              actually tracked.
+              Coming Soon
             </span>
-          </motion.h1>
-
-          <motion.p variants={item} className="max-w-lg text-lg text-muted-foreground">
-            Splizo is almost ready. Every account, every card, every home — one place that
-            knows where the money went.
-          </motion.p>
+          </h1>
         </motion.div>
 
         <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={container}
-          className="mt-20 grid w-full max-w-4xl gap-6 sm:grid-cols-3"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="relative mt-8 h-[320px] w-full max-w-lg shrink"
         >
-          {steps.map((step, i) => (
-            <motion.div
-              key={step.title}
-              variants={item}
-              whileHover={{ scale: 1.03 }}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                  {i + 1}
-                </div>
-                <step.icon className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="font-semibold">{step.title}</h3>
-              <p className="text-sm text-muted-foreground">{step.description}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="mt-20 flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground"
-        >
-          <HandCoins className="h-4 w-4 text-primary" />
-          Plus a running ledger for what family owes — or is owed.
+          <Phone className="top-6 left-[28%]" rotate={-12} scale={0.62} />
+          <Phone className="top-6 left-[72%]" rotate={12} scale={0.62} />
+          <Phone className="top-0 left-1/2 z-10" rotate={0} scale={0.74} />
         </motion.div>
       </main>
-
-      <footer className="relative z-10 border-t border-border/60 px-6 py-6 text-center text-xs text-muted-foreground">
-        Splizo · Built for one household first.
-      </footer>
     </div>
   );
 }
