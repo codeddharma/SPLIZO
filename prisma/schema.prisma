@@ -28,6 +28,16 @@ model Household {
   @@map("households")
 }
 
+// Pre-launch marketing capture — unrelated to Household, since this is
+// collected before anyone has an account at all.
+model WaitlistSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist_signups")
+}
+
 model User {
   id           String    @id @default(cuid())
   householdId  String
