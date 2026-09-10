@@ -29,7 +29,7 @@ export function CategoryDonut({ data }: { data: { name: string; value: number }[
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
+        <Tooltip formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>

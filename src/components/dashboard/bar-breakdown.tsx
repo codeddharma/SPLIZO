@@ -19,7 +19,7 @@ export function BarBreakdown({ data }: { data: { name: string; value: number }[]
       <BarChart data={data} layout="vertical" margin={{ left: 12 }}>
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 12 }} />
-        <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
+        <Tooltip formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />
         <Bar dataKey="value" radius={[0, 6, 6, 0]}>
           {data.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />

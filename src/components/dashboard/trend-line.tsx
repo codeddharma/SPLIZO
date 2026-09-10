@@ -12,7 +12,7 @@ export function TrendLine({
       <LineChart data={data}>
         <XAxis dataKey="month" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} width={50} />
-        <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
+        <Tooltip formatter={(v) => `₹${Number(v).toLocaleString("en-IN")}`} />
         <Legend />
         <Line type="monotone" dataKey="income" stroke="var(--income)" strokeWidth={2} name="Income" />
         <Line
