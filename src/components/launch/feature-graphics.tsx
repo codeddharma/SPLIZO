@@ -63,9 +63,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 /** 01 — Shared Household Tracking: the people, then the homes, then one ledger. */
 export function HouseholdGraphic({ className }: { className?: string }) {
   const people = [
-    { name: "Hardi", initials: "H", accounts: "2 accounts" },
-    { name: "Neel", initials: "N", accounts: "3 accounts" },
-    { name: "Aai", initials: "A", accounts: "2 accounts" },
+    { name: "Riya", initials: "R", accounts: "2 accounts" },
+    { name: "Dev", initials: "D", accounts: "3 accounts" },
+    { name: "Mom", initials: "M", accounts: "2 accounts" },
   ];
 
   const homes = [
