@@ -9,6 +9,7 @@ async function main() {
   });
 
   const passwordHash = await bcrypt.hash("changeme123", 10);
+  const termsAcceptedAt = new Date();
 
   await prisma.user.createMany({
     data: [
@@ -17,12 +18,14 @@ async function main() {
         name: "You",
         email: "you@example.com",
         passwordHash,
+        termsAcceptedAt,
       },
       {
         householdId: household.id,
         name: "Spouse",
         email: "spouse@example.com",
         passwordHash,
+        termsAcceptedAt,
       },
     ],
   });

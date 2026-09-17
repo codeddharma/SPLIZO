@@ -52,6 +52,7 @@ export async function signupAction(
     email: formData.get("email"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
+    agreedToTerms: formData.get("agreedToTerms") === "on",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
@@ -70,7 +71,7 @@ export async function signupAction(
     const household = await tx.household.create({ data: { name: householdName } });
 
     const user = await tx.user.create({
-      data: { householdId: household.id, name, email, passwordHash },
+      data: { householdId: household.id, name, email, passwordHash, termsAcceptedAt: new Date() },
     });
 
     await tx.personTag.create({

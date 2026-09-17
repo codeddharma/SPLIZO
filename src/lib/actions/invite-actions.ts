@@ -86,6 +86,7 @@ export async function acceptInviteAction(
   const parsed = acceptInviteSchema.safeParse({
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
+    agreedToTerms: formData.get("agreedToTerms") === "on",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
@@ -116,6 +117,7 @@ export async function acceptInviteAction(
         name: invite.personTag.name,
         email: invite.email,
         passwordHash,
+        termsAcceptedAt: new Date(),
       },
     });
     await tx.personTag.update({ where: { id: invite.personTagId }, data: { userId: user.id } });
