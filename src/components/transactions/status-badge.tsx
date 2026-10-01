@@ -15,7 +15,7 @@ const LABELS: Record<string, string> = {
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STYLES[status] ?? ""}`}
+      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${STYLES[status] ?? ""}`}
     >
       {LABELS[status] ?? status}
     </span>

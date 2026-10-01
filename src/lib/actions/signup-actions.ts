@@ -82,6 +82,10 @@ export async function signupAction(
       data: { householdId: household.id, name: "General" },
     });
 
+    await tx.account.create({
+      data: { householdId: household.id, name: "Cash", type: "cash", isSystem: true },
+    });
+
     const expenseCategories = await tx.category.createManyAndReturn({
       data: DEFAULT_EXPENSE_CATEGORIES.map((catName) => ({
         householdId: household.id,

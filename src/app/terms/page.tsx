@@ -4,7 +4,10 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions · Splizo",
+  title: "Terms & Conditions",
+  description: "The terms that govern using Splizo, the household finance tracker.",
+  alternates: { canonical: "/terms" },
+  robots: { index: false, follow: true },
 };
 
 const EFFECTIVE_DATE = "16 September 2026";

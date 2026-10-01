@@ -78,7 +78,7 @@ export function MultiSelect({
           {selectedOptions.map((o) => (
             <span
               key={o.id}
-              className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
             >
               {o.name}
               <button

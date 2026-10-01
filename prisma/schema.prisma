@@ -79,6 +79,7 @@ model PersonTag {
   transactionPersonTags TransactionPersonTag[]
   spentTransactions     Transaction[]
   invites               Invite[]
+  accountOwners         AccountOwner[]
 
   @@index([householdId])
   @@map("person_tags")
@@ -156,11 +157,27 @@ model Account {
   institution String?
   last4       String?
   isActive    Boolean     @default(true)
+  isSystem    Boolean     @default(false)
 
   transactions Transaction[]
+  owners       AccountOwner[]
 
   @@index([householdId])
   @@map("accounts")
+}
+
+// Joint ownership: an account can belong to more than one household member
+// (e.g. a joint account between spouses, or between a spouse and a parent).
+model AccountOwner {
+  id          String    @id @default(cuid())
+  accountId   String
+  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  personTagId String
+  personTag   PersonTag @relation(fields: [personTagId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, personTagId])
+  @@index([personTagId])
+  @@map("account_owners")
 }
 
 enum CategoryStatus {
@@ -198,10 +215,12 @@ model Transaction {
   importBatchId  String?
   importBatch    ImportBatch?      @relation(fields: [importBatchId], references: [id])
   rawPayload     Json?
+  isInFamilyTransfer Boolean       @default(false)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   loan  Loan?
+  loanRepayment LoanRepayment?
   homes  TransactionHome[]
   people TransactionPersonTag[]
 
@@ -319,12 +338,14 @@ model Invite {
 }
 
 model LoanRepayment {
-  id     String   @id @default(cuid())
-  loanId String
-  loan   Loan     @relation(fields: [loanId], references: [id])
-  amount Decimal  @db.Decimal(12, 2)
-  date   DateTime
-  notes  String?
+  id                  String       @id @default(cuid())
+  loanId              String
+  loan                Loan         @relation(fields: [loanId], references: [id])
+  amount              Decimal      @db.Decimal(12, 2)
+  date                DateTime
+  notes               String?
+  linkedTransactionId String?      @unique
+  linkedTransaction   Transaction? @relation(fields: [linkedTransactionId], references: [id])
 
   @@index([loanId])
   @@map("loan_repayments")

@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
+// Loan/repayment transactions and transfers marked as in-family (e.g. one
+// spouse's account to another's) aren't real spend or income, so every
+// analytics aggregation excludes them. They still show up in the plain
+// transaction list.
+const NOT_LOAN_LINKED = { loan: null, loanRepayment: null, isInFamilyTransfer: false } as const;
+
 function monthRange(monthsAgo = 0) {
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthsAgo, 1));
@@ -11,11 +17,11 @@ export async function getHeadlineTotals(householdId: string, monthsAgo = 0) {
   const { start, end } = monthRange(monthsAgo);
   const [incomeAgg, expenseAgg] = await Promise.all([
     prisma.transaction.aggregate({
-      where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 } },
+      where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 }, ...NOT_LOAN_LINKED },
       _sum: { amount: true },
     }),
     prisma.transaction.aggregate({
-      where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 } },
+      where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 }, ...NOT_LOAN_LINKED },
       _sum: { amount: true },
     }),
   ]);
@@ -32,7 +38,7 @@ async function groupExpenseByField(
   const { start, end } = monthRange(monthsAgo);
   const grouped = await prisma.transaction.groupBy({
     by: [field],
-    where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 } },
+    where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 }, ...NOT_LOAN_LINKED },
     _sum: { amount: true },
   });
   return grouped.map((g) => ({
@@ -113,6 +119,7 @@ export async function getCategoryRuleBreakdown(householdId: string) {
       date: { gte: start, lt: end },
       amount: { lt: 0 },
       categoryRuleId: { not: null },
+      ...NOT_LOAN_LINKED,
     },
     _sum: { amount: true },
   });
@@ -131,7 +138,7 @@ export async function getIncomeBreakdown(householdId: string) {
   const { start, end } = monthRange(0);
   const grouped = await prisma.transaction.groupBy({
     by: ["categoryId"],
-    where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 } },
+    where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 }, ...NOT_LOAN_LINKED },
     _sum: { amount: true },
   });
   const ids = grouped.map((g) => g.categoryId).filter((id): id is string => !!id);
@@ -184,6 +191,6 @@ export async function getMonthOverMonthDelta(householdId: string) {
 
 export async function getNeedsAttentionCount(householdId: string) {
   return prisma.transaction.count({
-    where: { householdId, categoryStatus: { in: ["needs_review", "unmapped"] } },
+    where: { householdId, categoryStatus: { in: ["needs_review", "unmapped"] }, ...NOT_LOAN_LINKED },
   });
 }

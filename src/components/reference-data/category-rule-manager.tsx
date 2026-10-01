@@ -1,4 +1,5 @@
 import { SubmitButton } from "@/components/ui/submit-button";
+import { getCategoryBadgeStyle } from "@/lib/category-color";
 
 type CategoryRule = {
   id: string;
@@ -16,23 +17,23 @@ export function CategoryRuleManager({
   categories,
   createAction,
   deactivateAction,
-  tabs,
 }: {
   rules: CategoryRule[];
   categories: Category[];
   createAction: (formData: FormData) => Promise<void>;
   deactivateAction: (formData: FormData) => Promise<void>;
-  tabs?: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full w-full flex-col gap-6 p-6">
-      {tabs}
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">Category Rules</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Category Rules</h1>
         <p className="text-sm text-muted-foreground">
           If a transaction&apos;s description contains this text, auto-assign it to this category
-          — e.g. &quot;contains SWIGGY&quot; → Dining Out. For payees that never appear in the
-          description (like rent to a landlord), just pick the category manually instead.
+          — e.g. &quot;contains SWIGGY&quot; → Dining Out. Separate multiple keywords with commas
+          (e.g. &quot;SWIGGY, ZOMATO&quot;) to match any of them. If a description matches
+          keywords from more than one rule, it goes to Needs Review instead of auto-assigning.
+          For payees that never appear in the description (like rent to a landlord), just pick
+          the category manually instead.
         </p>
       </div>
 
@@ -53,7 +54,7 @@ export function CategoryRuleManager({
           <label className="text-xs font-semibold text-muted-foreground">Match text</label>
           <input
             name="matchText"
-            placeholder="e.g. SWIGGY"
+            placeholder="e.g. SWIGGY, ZOMATO"
             required
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
@@ -101,11 +102,18 @@ export function CategoryRuleManager({
                 ({rule.matchText}, {rule.matchType})
               </span>
               <span className="text-muted-foreground">→</span>
-              <span className="font-medium text-primary">
-                {rule.category?.name ?? "Uncategorized"}
-              </span>
+              {rule.category ? (
+                <span
+                  className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                  style={getCategoryBadgeStyle(rule.category.name)}
+                >
+                  {rule.category.name}
+                </span>
+              ) : (
+                <span className="font-medium text-muted-foreground">Uncategorized</span>
+              )}
               {rule.source === "learned" && (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
                   learned
                 </span>
               )}

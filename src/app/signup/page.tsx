@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
 import { SignupForm } from "@/components/signup-form";
+
+export const metadata: Metadata = {
+  title: "Create Your Household",
+  description: "Start tracking your household's finances on Splizo — free during the private beta.",
+  alternates: { canonical: "/signup" },
+};
 
 export default function SignupPage() {
   return (

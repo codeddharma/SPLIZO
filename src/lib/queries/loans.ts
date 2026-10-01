@@ -24,3 +24,21 @@ export async function getLoanSummary(householdId: string) {
     .reduce((sum, l) => sum + l.outstanding, 0);
   return { totalLent, totalBorrowed };
 }
+
+// Transactions not yet claimed by a loan or repayment — candidates for the
+// "link existing transaction" picker on the Loans page.
+export async function getUnlinkedTransactions(householdId: string) {
+  const transactions = await prisma.transaction.findMany({
+    where: { householdId, loan: null, loanRepayment: null },
+    include: { account: true },
+    orderBy: { date: "desc" },
+    take: 200,
+  });
+  return transactions.map((t) => ({
+    id: t.id,
+    date: t.date,
+    description: t.description,
+    amount: Number(t.amount),
+    accountName: t.account.name,
+  }));
+}

@@ -4,7 +4,10 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy · Splizo",
+  title: "Privacy Policy",
+  description: "How Splizo collects, stores, and uses your household's financial data.",
+  alternates: { canonical: "/privacy" },
+  robots: { index: false, follow: true },
 };
 
 const EFFECTIVE_DATE = "16 September 2026";

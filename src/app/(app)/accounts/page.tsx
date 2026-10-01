@@ -5,14 +5,19 @@ import { AccountManager } from "@/components/reference-data/account-manager";
 
 export default async function AccountsPage() {
   const householdId = await getHouseholdId();
-  const accounts = await prisma.account.findMany({
-    where: { householdId, isActive: true },
-    orderBy: { name: "asc" },
-  });
+  const [accounts, people] = await Promise.all([
+    prisma.account.findMany({
+      where: { householdId, isActive: true },
+      orderBy: { name: "asc" },
+      include: { owners: { include: { personTag: true } } },
+    }),
+    prisma.personTag.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
+  ]);
 
   return (
     <AccountManager
       accounts={accounts}
+      people={people}
       createAction={createAccountAction}
       deactivateAction={deactivateAccountAction}
     />

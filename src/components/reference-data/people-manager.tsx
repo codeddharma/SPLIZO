@@ -18,20 +18,17 @@ export function PeopleManager({
   people,
   invites,
   origin,
-  tabs,
 }: {
   people: PersonRow[];
   invites: PendingInvite[];
   origin: string;
-  tabs: React.ReactNode;
 }) {
   const inviteByPersonTagId = Object.fromEntries(invites.map((i) => [i.personTagId, i]));
 
   return (
-    <div className="flex h-full w-full flex-col gap-6 p-6">
-      {tabs}
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">People</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">People</h1>
         <p className="text-sm text-muted-foreground">
           You, your spouse, joint, even &apos;Mom&apos; or &apos;Dad&apos;. Invite someone to give
           them Splizo access — once they accept, they can be selected as &quot;Spent by&quot; on
@@ -65,7 +62,9 @@ export function PeopleManager({
                   <span className="text-xs text-muted-foreground">{person.user.email}</span>
                 )}
                 {!person.user && pendingInvite && (
-                  <span className="text-xs text-muted-foreground">Invite pending</span>
+                  <span className="mt-1 w-fit rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning">
+                    Invite pending
+                  </span>
                 )}
               </div>
               <PersonRowActions

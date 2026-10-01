@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
@@ -5,16 +6,17 @@ import { createHomeAction, deactivateHomeAction } from "@/lib/actions/reference-
 import { SimpleTagManager } from "@/components/reference-data/simple-tag-manager";
 import { PeopleManager } from "@/components/reference-data/people-manager";
 import { EntityTabs } from "@/components/reference-data/entity-tabs";
+import { ListPanelSkeleton } from "@/components/reference-data/list-panel-skeleton";
 
-export default async function HouseholdPage({
-  searchParams,
+async function HouseholdPanel({
+  activeTab,
+  householdId,
+  origin,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  activeTab: "people" | "place";
+  householdId: string;
+  origin: string;
 }) {
-  const { tab } = await searchParams;
-  const activeTab = tab === "place" ? "place" : "people";
-  const householdId = await getHouseholdId();
-
   if (activeTab === "place") {
     const homes = await prisma.home.findMany({
       where: { householdId, isActive: true },
@@ -30,13 +32,9 @@ export default async function HouseholdPage({
         description="Rented, owned, parents', or General for anything not tied to a specific home."
         label="Place"
         placeholder="e.g. Rented Home"
-        tabs={<EntityTabs active="place" />}
       />
     );
   }
-
-  const headerList = await headers();
-  const origin = `${headerList.get("x-forwarded-proto") ?? "http"}://${headerList.get("host")}`;
 
   const [people, invites] = await Promise.all([
     prisma.personTag.findMany({
@@ -50,12 +48,26 @@ export default async function HouseholdPage({
     }),
   ]);
 
+  return <PeopleManager people={people} invites={invites} origin={origin} />;
+}
+
+export default async function HouseholdPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const activeTab = tab === "place" ? "place" : "people";
+  const householdId = await getHouseholdId();
+  const headerList = await headers();
+  const origin = `${headerList.get("x-forwarded-proto") ?? "http"}://${headerList.get("host")}`;
+
   return (
-    <PeopleManager
-      people={people}
-      invites={invites}
-      origin={origin}
-      tabs={<EntityTabs active="people" />}
-    />
+    <div className="flex h-full w-full flex-col gap-6 p-6">
+      <EntityTabs active={activeTab} />
+      <Suspense key={activeTab} fallback={<ListPanelSkeleton formFields={1} />}>
+        <HouseholdPanel activeTab={activeTab} householdId={householdId} origin={origin} />
+      </Suspense>
+    </div>
   );
 }

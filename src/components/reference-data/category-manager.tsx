@@ -1,5 +1,6 @@
 import { Lock } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { getCategoryColor } from "@/lib/category-color";
 
 type Category = {
   id: string;
@@ -19,7 +20,7 @@ function CategoryGroup({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-sm font-bold text-muted-foreground">{title}</h2>
+      <h2 className="text-base font-bold text-foreground">{title}</h2>
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
         {categories.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">None yet.</div>
@@ -27,6 +28,10 @@ function CategoryGroup({
         {categories.map((category) => (
           <div key={category.id} className="flex items-center justify-between px-4 py-2.5">
             <span className="flex items-center gap-2 text-sm font-medium">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: getCategoryColor(category.name) }}
+              />
               {category.name}
               {category.isSystem && <Lock className="h-3 w-3 text-muted-foreground" />}
             </span>
@@ -53,19 +58,16 @@ export function CategoryManager({
   incomeCategories,
   createAction,
   deactivateAction,
-  tabs,
 }: {
   expenseCategories: Category[];
   incomeCategories: Category[];
   createAction: (formData: FormData) => Promise<void>;
   deactivateAction: (formData: FormData) => Promise<void>;
-  tabs?: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full w-full flex-col gap-6 p-6">
-      {tabs}
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Categories</h1>
         <p className="text-sm text-muted-foreground">
           Default categories (
           <Lock className="inline h-3 w-3 align-baseline" />) are locked. Add your own anytime.

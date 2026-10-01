@@ -20,12 +20,12 @@ import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
 import { TrendLine } from "@/components/dashboard/trend-line";
 import { MomDeltaTable } from "@/components/dashboard/mom-delta-table";
 import { NeedsAttentionWidget } from "@/components/dashboard/needs-attention-widget";
-import { TransactionTable } from "@/components/transactions/transaction-table";
+import { TransactionList } from "@/components/transactions/transaction-list";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <h2 className="mb-2 text-sm font-bold text-muted-foreground">{title}</h2>
+      <h2 className="mb-3 text-base font-bold text-foreground">{title}</h2>
       {children}
     </div>
   );
@@ -63,14 +63,7 @@ export default async function DashboardPage() {
     getSpentByBreakdown(householdId),
     prisma.transaction.findMany({
       where: { householdId },
-      include: {
-        account: true,
-        category: true,
-        categoryRule: true,
-        homes: { include: { home: true } },
-        people: { include: { personTag: true } },
-        spentByPersonTag: true,
-      },
+      include: { category: true },
       orderBy: { date: "desc" },
       take: 8,
     }),
@@ -79,12 +72,17 @@ export default async function DashboardPage() {
   return (
     <div className="flex w-full flex-col gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">This month at a glance.</p>
       </div>
 
       <NeedsAttentionWidget count={needsAttention} />
-      <HeadlineCards income={totals.income} expense={totals.expense} savings={totals.savings} />
+      <HeadlineCards
+        income={totals.income}
+        expense={totals.expense}
+        savings={totals.savings}
+        trend={trend}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <Card title="Spend by category">
@@ -118,13 +116,13 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-xs text-muted-foreground">Outstanding — lent</div>
-              <div className="text-lg font-bold text-income">
+              <div className="text-xl font-extrabold text-income">
                 ₹{loanSummary.totalLent.toLocaleString("en-IN")}
               </div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Outstanding — borrowed</div>
-              <div className="text-lg font-bold text-expense">
+              <div className="text-xl font-extrabold text-expense">
                 ₹{loanSummary.totalBorrowed.toLocaleString("en-IN")}
               </div>
             </div>
@@ -133,7 +131,15 @@ export default async function DashboardPage() {
       </div>
 
       <Card title="Recent transactions">
-        <TransactionTable transactions={recent} />
+        <TransactionList
+          transactions={recent.map((t) => ({
+            id: t.id,
+            date: t.date,
+            description: t.description,
+            amount: Number(t.amount),
+            category: t.category ? { name: t.category.name } : null,
+          }))}
+        />
       </Card>
     </div>
   );

@@ -5,6 +5,45 @@ import { getHouseholdId } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { parseBankCsv } from "@/lib/csv/parse-bank-csv";
 import { categorize } from "@/lib/categorization/apply-categorization";
+import { importPdfAction } from "@/lib/actions/pdf-import-actions";
+
+export type UnifiedImportSummary =
+  | {
+      format: string;
+      total: number;
+      inserted: number;
+      duplicates: number;
+      autoMapped: number;
+      needsReview: number;
+      unmapped: number;
+      accountsCreated: number;
+    }
+  | { error: string };
+
+/** Detects CSV vs PDF from the file extension and routes to the matching parser. */
+export async function importAction(
+  _prev: UnifiedImportSummary | null,
+  formData: FormData
+): Promise<UnifiedImportSummary> {
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) {
+    return { error: "Select a CSV or PDF statement file." };
+  }
+
+  const extension = file.name.toLowerCase().split(".").pop();
+
+  if (extension === "csv") {
+    const result = await importCsvAction(null, formData);
+    if ("error" in result) return result;
+    return { format: "CSV", accountsCreated: 0, ...result };
+  }
+
+  if (extension === "pdf") {
+    return importPdfAction(null, formData);
+  }
+
+  return { error: "Unsupported file type — upload a .csv or .pdf statement." };
+}
 
 export type ImportSummary =
   | {
@@ -32,6 +71,13 @@ export async function importCsvAction(
   const text = await file.text();
   const result = parseBankCsv(text);
   if (!result.ok) return { error: result.error };
+
+  const account = await prisma.account.findFirst({
+    where: { id: accountId, householdId },
+    select: { owners: { select: { personTagId: true } } },
+  });
+  const spentByPersonTagId =
+    account?.owners.length === 1 ? account.owners[0].personTagId : null;
 
   const importBatch = await prisma.importBatch.create({
     data: { householdId, fileName: file.name, source: "csv" },
@@ -72,6 +118,7 @@ export async function importCsvAction(
         categoryId,
         categoryStatus,
         categoryRuleId,
+        spentByPersonTagId,
         amount: row.amount,
         date: row.date,
         description: row.description,

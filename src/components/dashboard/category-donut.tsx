@@ -9,6 +9,7 @@ const COLORS = [
   "var(--chart-3)",
   "var(--chart-4)",
   "var(--chart-5)",
+  "var(--chart-6)",
 ];
 
 export function CategoryDonut({ data }: { data: { name: string; value: number }[] }) {

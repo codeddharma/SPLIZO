@@ -1,19 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
-import { getLoansWithBalances, getLoanSummary } from "@/lib/queries/loans";
+import { getLoansWithBalances, getLoanSummary, getUnlinkedTransactions } from "@/lib/queries/loans";
 import {
   createContactAction,
   createLoanAction,
   addRepaymentAction,
 } from "@/lib/actions/loan-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { LoanForm } from "@/components/loans/loan-form";
+import { RepaymentForm } from "@/components/loans/repayment-form";
 
 export default async function LoansPage() {
   const householdId = await getHouseholdId();
-  const [contacts, loans, summary] = await Promise.all([
+  const [contacts, loans, summary, accounts, unlinkedTransactions] = await Promise.all([
     prisma.contact.findMany({ where: { householdId }, orderBy: { name: "asc" } }),
     getLoansWithBalances(householdId),
     getLoanSummary(householdId),
+    prisma.account.findMany({ where: { householdId, isActive: true }, orderBy: { name: "asc" } }),
+    getUnlinkedTransactions(householdId),
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -21,7 +25,7 @@ export default async function LoansPage() {
   return (
     <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-6 p-6">
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">Loans</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Loans</h1>
         <p className="text-sm text-muted-foreground">
           Money lent to or borrowed from family/relatives — tracked separately from household
           spending.
@@ -31,13 +35,13 @@ export default async function LoansPage() {
       <div className="grid shrink-0 grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">Outstanding — lent</div>
-          <div className="text-xl font-bold text-income">
+          <div className="text-2xl font-extrabold tracking-tight text-income">
             ₹{summary.totalLent.toLocaleString("en-IN")}
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">Outstanding — borrowed</div>
-          <div className="text-xl font-bold text-expense">
+          <div className="text-2xl font-extrabold tracking-tight text-expense">
             ₹{summary.totalBorrowed.toLocaleString("en-IN")}
           </div>
         </div>
@@ -73,61 +77,13 @@ export default async function LoansPage() {
           Add a contact above before logging a loan.
         </div>
       ) : (
-        <form
-          action={createLoanAction}
-          className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end sm:flex-wrap"
-        >
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Contact</label>
-            <select
-              name="contactId"
-              required
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            >
-              {contacts.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Direction</label>
-            <select
-              name="direction"
-              defaultValue="lent"
-              required
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            >
-              <option value="lent">Lent to them</option>
-              <option value="borrowed">Borrowed from them</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Amount (₹)</label>
-            <input
-              name="openingAmount"
-              type="number"
-              step="0.01"
-              min="0.01"
-              required
-              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Date</label>
-            <input
-              name="date"
-              type="date"
-              defaultValue={today}
-              required
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
-            Add loan
-          </SubmitButton>
-        </form>
+        <LoanForm
+          contacts={contacts}
+          accounts={accounts}
+          unlinkedTransactions={unlinkedTransactions}
+          today={today}
+          createLoanAction={createLoanAction}
+        />
       )}
 
       <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
@@ -140,7 +96,7 @@ export default async function LoansPage() {
               <div className="flex items-center gap-2 text-sm font-medium">
                 {loan.contact.name}
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                     loan.direction === "lent"
                       ? "bg-income/10 text-income"
                       : "bg-expense/10 text-expense"
@@ -149,7 +105,7 @@ export default async function LoansPage() {
                   {loan.direction === "lent" ? "Lent" : "Borrowed"}
                 </span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                     loan.status === "settled"
                       ? "bg-muted text-muted-foreground"
                       : "bg-warning/10 text-warning"
@@ -167,31 +123,14 @@ export default async function LoansPage() {
               </div>
             </div>
             {loan.status === "open" && (
-              <form action={addRepaymentAction} className="flex items-center gap-2">
-                <input type="hidden" name="loanId" value={loan.id} />
-                <input
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="Repayment amount"
-                  required
-                  className="w-36 rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
-                />
-                <input
-                  name="date"
-                  type="date"
-                  defaultValue={today}
-                  required
-                  className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
-                />
-                <SubmitButton
-                  className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-muted disabled:opacity-60"
-                  pendingText="Adding…"
-                >
-                  Add repayment
-                </SubmitButton>
-              </form>
+              <RepaymentForm
+                loanId={loan.id}
+                direction={loan.direction}
+                accounts={accounts}
+                unlinkedTransactions={unlinkedTransactions}
+                today={today}
+                addRepaymentAction={addRepaymentAction}
+              />
             )}
           </div>
         ))}

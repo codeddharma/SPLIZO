@@ -2,8 +2,15 @@ import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
 import { SubmitButton } from "@/components/ui/submit-button";
+
+export const metadata: Metadata = {
+  title: "Log In",
+  alternates: { canonical: "/login" },
+  robots: { index: false, follow: true },
+};
 
 async function loginAction(formData: FormData) {
   "use server";

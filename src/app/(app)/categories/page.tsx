@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
 import {
@@ -9,16 +10,15 @@ import {
 import { CategoryManager } from "@/components/reference-data/category-manager";
 import { CategoryRuleManager } from "@/components/reference-data/category-rule-manager";
 import { CategoryTabs } from "@/components/reference-data/category-tabs";
+import { ListPanelSkeleton } from "@/components/reference-data/list-panel-skeleton";
 
-export default async function CategoriesPage({
-  searchParams,
+async function CategoriesPanel({
+  activeTab,
+  householdId,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  activeTab: "categories" | "rules";
+  householdId: string;
 }) {
-  const { tab } = await searchParams;
-  const activeTab = tab === "rules" ? "rules" : "categories";
-  const householdId = await getHouseholdId();
-
   if (activeTab === "rules") {
     const [rules, categories] = await Promise.all([
       prisma.categoryRule.findMany({
@@ -38,7 +38,6 @@ export default async function CategoriesPage({
         categories={categories}
         createAction={createCategoryRuleAction}
         deactivateAction={deactivateCategoryRuleAction}
-        tabs={<CategoryTabs active="rules" />}
       />
     );
   }
@@ -54,7 +53,30 @@ export default async function CategoriesPage({
       incomeCategories={categories.filter((c) => c.kind === "income")}
       createAction={createCategoryAction}
       deactivateAction={deactivateCategoryAction}
-      tabs={<CategoryTabs active="categories" />}
     />
+  );
+}
+
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const activeTab = tab === "rules" ? "rules" : "categories";
+  const householdId = await getHouseholdId();
+
+  return (
+    <div className="flex h-full w-full flex-col gap-6 p-6">
+      <CategoryTabs active={activeTab} />
+      <Suspense
+        key={activeTab}
+        fallback={
+          <ListPanelSkeleton groups={activeTab === "rules" ? 1 : 2} formFields={activeTab === "rules" ? 4 : 2} />
+        }
+      >
+        <CategoriesPanel activeTab={activeTab} householdId={householdId} />
+      </Suspense>
+    </div>
   );
 }

@@ -52,6 +52,7 @@ export async function createAccountAction(formData: FormData) {
     institution: formData.get("institution") ?? "",
     last4: formData.get("last4") ?? "",
   });
+  const ownerPersonTagIds = formData.getAll("ownerPersonTagIds").map(String).filter(Boolean);
   await prisma.account.create({
     data: {
       householdId,
@@ -59,6 +60,7 @@ export async function createAccountAction(formData: FormData) {
       type: parsed.type,
       institution: parsed.institution || null,
       last4: parsed.last4 || null,
+      owners: { create: ownerPersonTagIds.map((personTagId) => ({ personTagId })) },
     },
   });
   revalidatePath("/accounts");
@@ -67,7 +69,10 @@ export async function createAccountAction(formData: FormData) {
 export async function deactivateAccountAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const id = String(formData.get("id"));
-  await prisma.account.updateMany({ where: { id, householdId }, data: { isActive: false } });
+  await prisma.account.updateMany({
+    where: { id, householdId, isSystem: false },
+    data: { isActive: false },
+  });
   revalidatePath("/accounts");
 }
 

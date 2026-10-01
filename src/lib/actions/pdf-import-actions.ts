@@ -65,9 +65,12 @@ export async function importPdfAction(
 
   const existingAccounts = await prisma.account.findMany({
     where: { householdId },
-    select: { id: true, institution: true, last4: true },
+    select: { id: true, institution: true, last4: true, owners: { select: { personTagId: true } } },
   });
   const accountIdByHint = new Map<string, string>();
+  const ownersByAccountId = new Map<string, string[]>(
+    existingAccounts.map((a) => [a.id, a.owners.map((o) => o.personTagId)])
+  );
   let accountsCreated = 0;
 
   let inserted = 0;
@@ -96,7 +99,9 @@ export async function importPdfAction(
             id: created.id,
             institution: created.institution,
             last4: created.last4,
+            owners: [],
           });
+          ownersByAccountId.set(created.id, []);
           accountId = created.id;
           accountsCreated++;
         }
@@ -142,6 +147,9 @@ export async function importPdfAction(
     else if (categoryStatus === "needs_review") needsReview++;
     else unmapped++;
 
+    const owners = ownersByAccountId.get(accountId) ?? [];
+    const spentByPersonTagId = owners.length === 1 ? owners[0] : null;
+
     await prisma.transaction.create({
       data: {
         householdId,
@@ -149,6 +157,7 @@ export async function importPdfAction(
         categoryId,
         categoryStatus,
         categoryRuleId,
+        spentByPersonTagId,
         amount: row.amount,
         date: row.date,
         description: row.description,

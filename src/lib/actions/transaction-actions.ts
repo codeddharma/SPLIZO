@@ -77,6 +77,63 @@ export async function createTransactionAction(formData: FormData) {
   revalidateAll();
 }
 
+export async function updateTransactionAction(formData: FormData) {
+  const householdId = await getHouseholdId();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const transaction = await prisma.transaction.findFirst({ where: { id, householdId } });
+  if (!transaction) return;
+
+  const categoryId = String(formData.get("categoryId") ?? "") || null;
+  const spentByPersonTagId = String(formData.get("spentByPersonTagId") ?? "") || null;
+  const isInFamilyTransfer = formData.get("isInFamilyTransfer") === "on";
+  const homeIds = formData.getAll("homeIds").map(String);
+  const personTagIds = formData.getAll("personTagIds").map(String);
+
+  const totalAmount = Number(transaction.amount);
+  const homeOverrides = parseAmountOverrides(formData, "homeAmount_", homeIds);
+  const personOverrides = parseAmountOverrides(formData, "personAmount_", personTagIds);
+  const homeShares = resolveShares(homeIds, homeOverrides, totalAmount);
+  const personShares = resolveShares(personTagIds, personOverrides, totalAmount);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.transaction.update({
+      where: { id },
+      data: {
+        categoryId,
+        categoryStatus: categoryId ? "confirmed" : transaction.categoryStatus,
+        spentByPersonTagId,
+        isInFamilyTransfer,
+      },
+    });
+
+    await tx.transactionHome.deleteMany({ where: { transactionId: id } });
+    await tx.transactionHome.createMany({
+      data: homeShares.map((s) => ({ transactionId: id, homeId: s.id, amount: s.amount })),
+    });
+
+    await tx.transactionPersonTag.deleteMany({ where: { transactionId: id } });
+    await tx.transactionPersonTag.createMany({
+      data: personShares.map((s) => ({ transactionId: id, personTagId: s.id, amount: s.amount })),
+    });
+  });
+
+  revalidateAll();
+}
+
+export async function bulkRecategorizeTransactionsAction(ids: string[], categoryId: string) {
+  const householdId = await getHouseholdId();
+  if (ids.length === 0 || !categoryId) return;
+
+  await prisma.transaction.updateMany({
+    where: { id: { in: ids }, householdId },
+    data: { categoryId, categoryStatus: "confirmed" },
+  });
+
+  revalidateAll();
+}
+
 export async function recategorizeTransactionAction(formData: FormData) {
   const householdId = await getHouseholdId();
   const id = String(formData.get("id"));

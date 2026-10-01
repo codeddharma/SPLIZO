@@ -74,6 +74,9 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
           </button>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+          <div className="px-3 pb-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Main navigation
+          </div>
           {NAV.map((entry) => {
             const active =
               pathname === entry.href || pathname.startsWith(entry.href + "/");
@@ -82,10 +85,10 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
                 key={entry.href}
                 href={entry.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                className={`flex items-center gap-2.5 rounded-lg border-l-2 px-3 py-2 text-sm font-semibold transition-colors ${
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 <entry.icon className="h-4 w-4 shrink-0" />

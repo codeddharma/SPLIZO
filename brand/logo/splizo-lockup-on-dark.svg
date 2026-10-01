@@ -1,0 +1,17 @@
+<svg width="357" height="83" viewBox="0 0 357 83" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FCD34D" />
+      <stop offset="1" stop-color="#B45309" />
+    </linearGradient></defs>
+  
+  <g transform="translate(-9.600000000000001 -22.500000000000004) scale(3.2)">
+    <circle cx="16" cy="20" r="13" fill="url(#g)" fill-opacity="0.95" />
+    <circle cx="24" cy="20" r="13" fill="url(#g)" fill-opacity="0.65" />
+    <path d="M10 24 L17 16 L22 21 L30 11" fill="none" stroke="white" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="30" cy="11" r="2.4" fill="white" />
+  </g>
+  <text x="140.72" y="68.86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="76"
+        font-weight="700" letter-spacing="-1.14" fill="#F7F3EC">Splizo</text>
+</svg>
