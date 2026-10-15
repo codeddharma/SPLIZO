@@ -91,7 +91,7 @@ export default async function DashboardPage() {
         <Card title="Spend trend (6 months)">
           <TrendLine data={trend} />
         </Card>
-        <Card title="Spend by place">
+        <Card title="Spend by bucket">
           <BarBreakdown data={homeBreakdown} />
         </Card>
         <Card title="Spend by account">

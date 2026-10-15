@@ -28,10 +28,10 @@ async function HouseholdPanel({
         items={homes}
         createAction={createHomeAction}
         deactivateAction={deactivateHomeAction}
-        title="Place"
-        description="Rented, owned, parents', or General for anything not tied to a specific home."
-        label="Place"
-        placeholder="e.g. Rented Home"
+        title="Bucket"
+        description="Whatever you want to track spend against — a home, a business, server costs, or General for anything else."
+        label="Bucket"
+        placeholder="e.g. Rented Home, Business"
       />
     );
   }

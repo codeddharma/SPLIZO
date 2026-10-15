@@ -20,6 +20,7 @@ export function AddTransactionDialog({
   homes,
   people,
   owners,
+  defaultSpentByPersonTagId,
   createAction,
 }: {
   accounts: Option[];
@@ -27,6 +28,7 @@ export function AddTransactionDialog({
   homes: Option[];
   people: Option[];
   owners: Option[];
+  defaultSpentByPersonTagId?: string;
   createAction: (formData: FormData) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -55,6 +57,7 @@ export function AddTransactionDialog({
           homes={homes}
           people={people}
           owners={owners}
+          defaultSpentByPersonTagId={defaultSpentByPersonTagId}
           createAction={handleSubmit}
         />
       </DialogContent>

@@ -117,7 +117,7 @@ export function PersonRowActions({
           open
           onOpenChange={(o) => setModal(o ? "delete" : null)}
           title="Delete person?"
-          description={`"${personName}" will be hidden from People & Places and no longer selectable on new transactions.`}
+          description={`"${personName}" will be hidden from People & Buckets and no longer selectable on new transactions.`}
           confirmLabel="Delete"
           action={deactivatePersonTagAction}
           hiddenFields={{ id: personId }}

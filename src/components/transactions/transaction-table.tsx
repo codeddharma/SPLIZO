@@ -81,9 +81,9 @@ export function TransactionTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="rounded-xl border border-border bg-card">
       {enableSelection && selected.size > 0 && (
-        <div className="flex items-center gap-3 border-b border-border bg-muted/40 px-4 py-2">
+        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/40 px-4 py-2">
           <span className="text-xs font-semibold text-foreground">{selected.size} selected</span>
           <button
             type="button"
@@ -105,159 +105,275 @@ export function TransactionTable({
           )}
         </div>
       )}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            {enableSelection && (
-              <th className="w-8 px-4 py-3">
+
+      <div className="divide-y divide-border sm:hidden">
+        {transactions.length === 0 && (
+          <p className="px-4 py-6 text-center text-sm text-muted-foreground">No transactions yet.</p>
+        )}
+        {transactions.map((t) => {
+          const amount = t.amount;
+          const needsAction = showActions && categories && NEEDS_ACTION.has(t.categoryStatus);
+          const spentBy =
+            t.spentByPersonTag?.name ??
+            (t.account.owners.length > 1 ? t.account.owners.map((o) => o.name).join(" & ") : null);
+          return (
+            <div key={t.id} className="flex items-start gap-3 px-4 py-3">
+              {enableSelection && (
                 <input
                   type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                  aria-label="Select all"
-                  className="h-3.5 w-3.5"
+                  checked={selected.has(t.id)}
+                  onChange={() => toggleOne(t.id)}
+                  aria-label={`Select ${t.description}`}
+                  className="mt-1 h-3.5 w-3.5 shrink-0"
                 />
-              </th>
-            )}
-            <th className="px-4 py-3 font-semibold">Date</th>
-            <th className="px-4 py-3 text-right font-semibold">Amount</th>
-            <th className="px-4 py-3 font-semibold">Description</th>
-            <th className="px-4 py-3 font-semibold">Account</th>
-            <th className="px-4 py-3 font-semibold">Rule</th>
-            <th className="px-4 py-3 font-semibold">Category</th>
-            <th className="px-4 py-3 font-semibold">Place</th>
-            <th className="px-4 py-3 font-semibold">Person</th>
-            <th className="px-4 py-3 font-semibold">Spent by</th>
-            {enableEdit && <th className="w-8 px-4 py-3" />}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {transactions.length === 0 && (
-            <tr>
-              <td
-                colSpan={(enableSelection ? 10 : 9) + (enableEdit ? 1 : 0)}
-                className="px-4 py-6 text-center text-muted-foreground"
-              >
-                No transactions yet.
-              </td>
-            </tr>
-          )}
-          {transactions.map((t) => {
-            const amount = t.amount;
-            const needsAction = showActions && categories && NEEDS_ACTION.has(t.categoryStatus);
-            return (
-              <tr key={t.id}>
-                {enableSelection && (
-                  <td className="px-4 py-3 align-top">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(t.id)}
-                      onChange={() => toggleOne(t.id)}
-                      aria-label={`Select ${t.description}`}
-                      className="h-3.5 w-3.5"
-                    />
-                  </td>
-                )}
-                <td className="px-4 py-3 whitespace-nowrap align-top">
-                  {new Date(t.date).toLocaleDateString("en-IN", { timeZone: "UTC" })}
-                </td>
-                <td
-                  className={`px-4 py-3 text-right font-semibold align-top whitespace-nowrap ${
-                    amount < 0 ? "text-expense" : "text-income"
-                  }`}
-                >
-                  {amount < 0 ? "-" : "+"}₹{Math.abs(amount).toLocaleString("en-IN")}
-                </td>
-                <td className="px-4 py-3 font-medium align-top">
-                  <span className="flex items-center gap-1.5">
-                    {t.description}
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5 truncate text-sm font-medium text-foreground">
+                    <span className="truncate">{t.description}</span>
                     {(t.loan || t.loanRepayment) && (
-                      <span title="Loan transaction — excluded from dashboard totals">
-                        <Landmark
-                          className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                          aria-label="Loan transaction — excluded from dashboard totals"
-                        />
-                      </span>
-                    )}
-                    {t.isInFamilyTransfer && (
-                      <span title="In-family transfer — excluded from dashboard totals">
-                        <ArrowLeftRight
-                          className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                          aria-label="In-family transfer — excluded from dashboard totals"
-                        />
-                      </span>
-                    )}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground align-top">{t.account.name}</td>
-                <td className="px-4 py-3 text-muted-foreground align-top">{t.categoryRule?.name ?? "—"}</td>
-                <td className="px-4 py-3 align-top">
-                  <div className="flex items-center gap-1.5">
-                    {t.category ? (
-                      <span
-                        className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                        style={getCategoryBadgeStyle(t.category.name)}
-                      >
-                        {t.category.name}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                    {!needsAction && <StatusBadge status={t.categoryStatus} />}
-                    {needsAction && (
-                      <CategoryPicker
-                        categories={categories!}
-                        onSelect={(category) =>
-                          setAssignTarget({ id: t.id, description: t.description, category })
-                        }
-                        trigger={<AssignTrigger />}
+                      <Landmark
+                        className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                        aria-label="Loan transaction — excluded from dashboard totals"
                       />
                     )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground align-top">
-                  {t.homes.length > 0 ? t.homes.map((h) => h.home.name).join(", ") : "—"}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground align-top">
-                  {t.people.length > 0 ? t.people.map((p) => p.personTag.name).join(", ") : "—"}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground align-top">
-                  {t.spentByPersonTag?.name ??
-                    (t.account.owners.length > 1 ? (
-                      <span className="italic" title="Joint account — spender not confirmed">
-                        {t.account.owners.map((o) => o.name).join(" & ")}
-                      </span>
-                    ) : (
-                      "—"
-                    ))}
-                </td>
-                {enableEdit && (
-                  <td className="px-4 py-3 align-top">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditTarget({
-                          id: t.id,
-                          description: t.description,
-                          categoryId: t.categoryId,
-                          homeIds: t.homes.map((h) => h.home.id),
-                          personTagIds: t.people.map((p) => p.personTag.id),
-                          spentByPersonTagId: t.spentByPersonTag?.id ?? null,
-                          isInFamilyTransfer: t.isInFamilyTransfer,
-                        })
-                      }
-                      aria-label={`Edit ${t.description}`}
-                      className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    {t.isInFamilyTransfer && (
+                      <ArrowLeftRight
+                        className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                        aria-label="In-family transfer — excluded from dashboard totals"
+                      />
+                    )}
+                  </span>
+                  <span
+                    className={`shrink-0 text-sm font-semibold whitespace-nowrap ${
+                      amount < 0 ? "text-expense" : "text-income"
+                    }`}
+                  >
+                    {amount < 0 ? "-" : "+"}₹{Math.abs(amount).toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {new Date(t.date).toLocaleDateString("en-IN", { timeZone: "UTC" })} · {t.account.name}
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {t.category ? (
+                    <span
+                      className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                      style={getCategoryBadgeStyle(t.category.name)}
                     >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  </td>
+                      {t.category.name}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No category</span>
+                  )}
+                  {!needsAction && <StatusBadge status={t.categoryStatus} />}
+                  {needsAction && (
+                    <CategoryPicker
+                      categories={categories!}
+                      onSelect={(category) =>
+                        setAssignTarget({ id: t.id, description: t.description, category })
+                      }
+                      trigger={<AssignTrigger />}
+                    />
+                  )}
+                </div>
+
+                {(t.categoryRule || t.homes.length > 0 || t.people.length > 0 || spentBy) && (
+                  <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                    {t.categoryRule && <div>Rule: {t.categoryRule.name}</div>}
+                    {t.homes.length > 0 && (
+                      <div>Bucket: {t.homes.map((h) => h.home.name).join(", ")}</div>
+                    )}
+                    {t.people.length > 0 && (
+                      <div>Person: {t.people.map((p) => p.personTag.name).join(", ")}</div>
+                    )}
+                    {spentBy && <div>Spent by: {spentBy}</div>}
+                  </div>
                 )}
+              </div>
+
+              {enableEdit && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditTarget({
+                      id: t.id,
+                      description: t.description,
+                      categoryId: t.categoryId,
+                      homeIds: t.homes.map((h) => h.home.id),
+                      personTagIds: t.people.map((p) => p.personTag.id),
+                      spentByPersonTagId: t.spentByPersonTag?.id ?? null,
+                      isInFamilyTransfer: t.isInFamilyTransfer,
+                    })
+                  }
+                  aria-label={`Edit ${t.description}`}
+                  className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              {enableSelection && (
+                <th className="w-8 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="Select all"
+                    className="h-3.5 w-3.5"
+                  />
+                </th>
+              )}
+              <th className="px-4 py-3 font-semibold">Date</th>
+              <th className="px-4 py-3 text-right font-semibold">Amount</th>
+              <th className="px-4 py-3 font-semibold">Description</th>
+              <th className="px-4 py-3 font-semibold">Account</th>
+              <th className="px-4 py-3 font-semibold">Rule</th>
+              <th className="px-4 py-3 font-semibold">Category</th>
+              <th className="px-4 py-3 font-semibold">Bucket</th>
+              <th className="px-4 py-3 font-semibold">Person</th>
+              <th className="px-4 py-3 font-semibold">Spent by</th>
+              {enableEdit && <th className="w-8 px-4 py-3" />}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {transactions.length === 0 && (
+              <tr>
+                <td
+                  colSpan={(enableSelection ? 10 : 9) + (enableEdit ? 1 : 0)}
+                  className="px-4 py-6 text-center text-muted-foreground"
+                >
+                  No transactions yet.
+                </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            )}
+            {transactions.map((t) => {
+              const amount = t.amount;
+              const needsAction = showActions && categories && NEEDS_ACTION.has(t.categoryStatus);
+              return (
+                <tr key={t.id}>
+                  {enableSelection && (
+                    <td className="px-4 py-3 align-top">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(t.id)}
+                        onChange={() => toggleOne(t.id)}
+                        aria-label={`Select ${t.description}`}
+                        className="h-3.5 w-3.5"
+                      />
+                    </td>
+                  )}
+                  <td className="px-4 py-3 whitespace-nowrap align-top">
+                    {new Date(t.date).toLocaleDateString("en-IN", { timeZone: "UTC" })}
+                  </td>
+                  <td
+                    className={`px-4 py-3 text-right font-semibold align-top whitespace-nowrap ${
+                      amount < 0 ? "text-expense" : "text-income"
+                    }`}
+                  >
+                    {amount < 0 ? "-" : "+"}₹{Math.abs(amount).toLocaleString("en-IN")}
+                  </td>
+                  <td className="px-4 py-3 font-medium align-top">
+                    <span className="flex items-center gap-1.5">
+                      {t.description}
+                      {(t.loan || t.loanRepayment) && (
+                        <span title="Loan transaction — excluded from dashboard totals">
+                          <Landmark
+                            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                            aria-label="Loan transaction — excluded from dashboard totals"
+                          />
+                        </span>
+                      )}
+                      {t.isInFamilyTransfer && (
+                        <span title="In-family transfer — excluded from dashboard totals">
+                          <ArrowLeftRight
+                            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                            aria-label="In-family transfer — excluded from dashboard totals"
+                          />
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground align-top">{t.account.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground align-top">{t.categoryRule?.name ?? "—"}</td>
+                  <td className="px-4 py-3 align-top">
+                    <div className="flex items-center gap-1.5">
+                      {t.category ? (
+                        <span
+                          className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                          style={getCategoryBadgeStyle(t.category.name)}
+                        >
+                          {t.category.name}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                      {!needsAction && <StatusBadge status={t.categoryStatus} />}
+                      {needsAction && (
+                        <CategoryPicker
+                          categories={categories!}
+                          onSelect={(category) =>
+                            setAssignTarget({ id: t.id, description: t.description, category })
+                          }
+                          trigger={<AssignTrigger />}
+                        />
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground align-top">
+                    {t.homes.length > 0 ? t.homes.map((h) => h.home.name).join(", ") : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground align-top">
+                    {t.people.length > 0 ? t.people.map((p) => p.personTag.name).join(", ") : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground align-top">
+                    {t.spentByPersonTag?.name ??
+                      (t.account.owners.length > 1 ? (
+                        <span className="italic" title="Joint account — spender not confirmed">
+                          {t.account.owners.map((o) => o.name).join(" & ")}
+                        </span>
+                      ) : (
+                        "—"
+                      ))}
+                  </td>
+                  {enableEdit && (
+                    <td className="px-4 py-3 align-top">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditTarget({
+                            id: t.id,
+                            description: t.description,
+                            categoryId: t.categoryId,
+                            homeIds: t.homes.map((h) => h.home.id),
+                            personTagIds: t.people.map((p) => p.personTag.id),
+                            spentByPersonTagId: t.spentByPersonTag?.id ?? null,
+                            isInFamilyTransfer: t.isInFamilyTransfer,
+                          })
+                        }
+                        aria-label={`Edit ${t.description}`}
+                        className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <AssignRuleDialog
         open={assignTarget !== null}

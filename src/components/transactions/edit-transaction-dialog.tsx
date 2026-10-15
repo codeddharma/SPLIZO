@@ -91,12 +91,12 @@ function EditTransactionForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-muted-foreground">Place</label>
+        <label className="text-xs font-semibold text-muted-foreground">Bucket</label>
         <MultiSelect
           options={homes}
           selected={selectedHomes}
           onChange={setSelectedHomes}
-          placeholder="Select place(s)"
+          placeholder="Select bucket(s)"
         />
       </div>
 

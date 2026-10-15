@@ -21,7 +21,7 @@ export function EntityTabs({ active }: { active: "people" | "place" }) {
             : "border-transparent text-muted-foreground hover:text-foreground"
         }`}
       >
-        Place
+        Bucket
       </Link>
     </div>
   );

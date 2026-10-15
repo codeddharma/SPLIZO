@@ -38,8 +38,8 @@ export async function createTransactionAction(formData: FormData) {
 
   const spentByPersonTagId = String(formData.get("spentByPersonTagId") ?? "") || null;
 
-  if (parsed.direction === "out" && (parsed.homeIds.length === 0 || parsed.personTagIds.length === 0)) {
-    throw new Error("At least one place and one person are required for expense transactions.");
+  if (parsed.direction === "out" && parsed.homeIds.length === 0) {
+    throw new Error("At least one bucket is required for expense transactions.");
   }
 
   const signedAmount =

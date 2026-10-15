@@ -12,6 +12,7 @@ export function TransactionForm({
   homes,
   people,
   owners,
+  defaultSpentByPersonTagId,
   createAction,
 }: {
   accounts: Option[];
@@ -19,6 +20,7 @@ export function TransactionForm({
   homes: Option[];
   people: Option[];
   owners: Option[];
+  defaultSpentByPersonTagId?: string;
   createAction: (formData: FormData) => Promise<void>;
 }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -35,12 +37,12 @@ export function TransactionForm({
     );
   }
 
-  const required = direction === "out";
+  const homeRequired = direction === "out";
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (required && (selectedHomes.size === 0 || selectedPeople.size === 0)) {
+    if (homeRequired && selectedHomes.size === 0) {
       e.preventDefault();
-      setValidationError("Expense transactions need at least one place and one person selected.");
+      setValidationError("Expense transactions need at least one bucket selected.");
       return;
     }
     setValidationError(null);
@@ -143,7 +145,7 @@ export function TransactionForm({
             <select
               name="spentByPersonTagId"
               required
-              defaultValue=""
+              defaultValue={defaultSpentByPersonTagId || ""}
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="" disabled>
@@ -169,13 +171,13 @@ export function TransactionForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">
-            Place{required ? " (required)" : " (optional)"}
+            Bucket{homeRequired ? " (required)" : " (optional)"}
           </label>
           <MultiSelect
             options={homes}
             selected={selectedHomes}
             onChange={setSelectedHomes}
-            placeholder="Select place(s)"
+            placeholder="Select bucket(s)"
           />
           {selectedHomes.size > 1 && (
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-2">
@@ -201,9 +203,7 @@ export function TransactionForm({
           )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">
-            Person{required ? " (required)" : " (optional)"}
-          </label>
+          <label className="text-xs font-semibold text-muted-foreground">Person (optional)</label>
           <MultiSelect
             options={people}
             selected={selectedPeople}

@@ -11,6 +11,7 @@ import {
   Tags,
   Users,
   HandCoins,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -27,6 +28,7 @@ const NAV = [
   { href: "/categories", label: "Categories", icon: Tags },
   { href: "/household", label: "Household", icon: Users },
   { href: "/loans", label: "Loans", icon: HandCoins },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function AppSidebar({ user }: { user: { name: string; email: string } }) {
