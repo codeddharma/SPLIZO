@@ -3,7 +3,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { getHouseholdId } from "@/lib/session";
+import { getHouseholdId, requireSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createInviteSchema, acceptInviteSchema } from "@/lib/validation/invite";
@@ -64,11 +64,15 @@ export async function revokeInviteAction(formData: FormData) {
 }
 
 export async function removeAccessAction(formData: FormData) {
-  const householdId = await getHouseholdId();
+  const session = await requireSession();
+  const householdId = session.user.householdId;
   const personTagId = String(formData.get("personTagId") ?? "");
 
   const personTag = await prisma.personTag.findFirst({ where: { id: personTagId, householdId } });
   if (!personTag?.userId) return;
+  // Deleting your own User row would leave your session pointing at a
+  // record that no longer exists — any page that looks it up would 500.
+  if (personTag.userId === session.user.id) return;
 
   await prisma.user.delete({ where: { id: personTag.userId } });
 

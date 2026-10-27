@@ -2,32 +2,21 @@
 
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
-import { revalidatePath } from "next/cache";
 import { categorize } from "@/lib/categorization/apply-categorization";
 import { detectPdfFormat } from "@/lib/pdf-import/detect-format";
-import { resolveAccountHint } from "@/lib/pdf-import/resolve-account";
+import { resolveAccountHint, type ExistingAccount } from "@/lib/pdf-import/resolve-account";
 import { extractPdfText } from "@/lib/pdf-import/extract-pdf-text";
-
-export type PdfImportSummary =
-  | {
-      format: string;
-      total: number;
-      inserted: number;
-      duplicates: number;
-      autoMapped: number;
-      needsReview: number;
-      unmapped: number;
-      accountsCreated: number;
-    }
-  | { error: string };
+import type { ParsedTransactionRow } from "@/lib/pdf-import/types";
+import type { ImportStartResult } from "@/lib/actions/import-actions";
 
 export async function importPdfAction(
-  _prev: PdfImportSummary | null,
+  _prev: ImportStartResult | null,
   formData: FormData
-): Promise<PdfImportSummary> {
+): Promise<ImportStartResult> {
   const householdId = await getHouseholdId();
   const file = formData.get("file") as File | null;
   const selectedAccountId = String(formData.get("accountId") ?? "") || null;
+  const spentByPersonTagId = String(formData.get("spentByPersonTagId") ?? "") || null;
 
   if (!file || file.size === 0) {
     return { error: "Select a PDF file." };
@@ -60,17 +49,39 @@ export async function importPdfAction(
   }
 
   const importBatch = await prisma.importBatch.create({
-    data: { householdId, fileName: file.name, source: "pdf" },
+    data: { householdId, fileName: file.name, source: "pdf", total: rows.length },
   });
 
-  const existingAccounts = await prisma.account.findMany({
+  // Deliberately not awaited — see import-actions.ts for why this is safe
+  // on this pm2-managed deployment. The Import page polls for progress.
+  processPdfRows(householdId, selectedAccountId, spentByPersonTagId, importBatch.id, format, rows).catch(
+    async (err) => {
+      console.error("PDF import background processing failed:", err);
+      await prisma.importBatch
+        .update({
+          where: { id: importBatch.id },
+          data: { status: "failed", errorMessage: err instanceof Error ? err.message : "Unknown error" },
+        })
+        .catch(() => {});
+    }
+  );
+
+  return { started: true, fileName: file.name };
+}
+
+async function processPdfRows(
+  householdId: string,
+  selectedAccountId: string | null,
+  spentByPersonTagId: string | null,
+  importBatchId: string,
+  format: { requiresAccountPerRow: boolean },
+  rows: ParsedTransactionRow[]
+) {
+  const existingAccounts: ExistingAccount[] = await prisma.account.findMany({
     where: { householdId },
-    select: { id: true, institution: true, last4: true, owners: { select: { personTagId: true } } },
+    select: { id: true, institution: true, last4: true },
   });
   const accountIdByHint = new Map<string, string>();
-  const ownersByAccountId = new Map<string, string[]>(
-    existingAccounts.map((a) => [a.id, a.owners.map((o) => o.personTagId)])
-  );
   let accountsCreated = 0;
 
   let inserted = 0;
@@ -99,9 +110,7 @@ export async function importPdfAction(
             id: created.id,
             institution: created.institution,
             last4: created.last4,
-            owners: [],
           });
-          ownersByAccountId.set(created.id, []);
           accountId = created.id;
           accountsCreated++;
         }
@@ -147,9 +156,6 @@ export async function importPdfAction(
     else if (categoryStatus === "needs_review") needsReview++;
     else unmapped++;
 
-    const owners = ownersByAccountId.get(accountId) ?? [];
-    const spentByPersonTagId = owners.length === 1 ? owners[0] : null;
-
     await prisma.transaction.create({
       data: {
         householdId,
@@ -163,25 +169,14 @@ export async function importPdfAction(
         description: row.description,
         source: "pdf",
         externalRef: row.externalRef,
-        importBatchId: importBatch.id,
+        importBatchId,
       },
     });
     inserted++;
   }
 
-  revalidatePath("/import");
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
-  revalidatePath("/accounts");
-
-  return {
-    format: format.name,
-    total: rows.length,
-    inserted,
-    duplicates,
-    autoMapped,
-    needsReview,
-    unmapped,
-    accountsCreated,
-  };
+  await prisma.importBatch.update({
+    where: { id: importBatchId },
+    data: { status: "completed", inserted, duplicates, autoMapped, needsReview, unmapped, accountsCreated },
+  });
 }

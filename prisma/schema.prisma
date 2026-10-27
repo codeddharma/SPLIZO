@@ -24,6 +24,7 @@ model Household {
   contacts      Contact[]
   loans         Loan[]
   invites       Invite[]
+  savedCharts   SavedChart[]
 
   @@map("households")
 }
@@ -264,6 +265,18 @@ model ImportBatch {
   source      String
   importedAt  DateTime  @default(now())
 
+  // Row processing runs in the background after the upload request returns,
+  // so the UI polls this row for progress instead of waiting on the request.
+  status          String  @default("processing") // processing | completed | failed
+  total           Int     @default(0)
+  inserted        Int     @default(0)
+  duplicates      Int     @default(0)
+  autoMapped      Int     @default(0)
+  needsReview     Int     @default(0)
+  unmapped        Int     @default(0)
+  accountsCreated Int     @default(0)
+  errorMessage    String?
+
   transactions Transaction[]
 
   @@index([householdId])
@@ -349,4 +362,46 @@ model LoanRepayment {
 
   @@index([loanId])
   @@map("loan_repayments")
+}
+
+enum ChartMetric {
+  income
+  expense
+}
+
+enum ChartGroupBy {
+  category
+  bucket
+  account
+  person
+  month
+}
+
+enum ChartType {
+  bar
+  donut
+  line
+}
+
+// A household member's self-built dashboard chart. rangeKey mirrors the
+// string union resolveDateRange() accepts in src/lib/date-range.ts — kept as
+// a plain string rather than its own enum so there's one source of truth for
+// valid range keys instead of two that could drift apart.
+model SavedChart {
+  id          String       @id @default(cuid())
+  householdId String
+  household   Household    @relation(fields: [householdId], references: [id])
+  title       String
+  metric      ChartMetric
+  groupBy     ChartGroupBy
+  chartType   ChartType
+  rangeKey    String
+  rangeFrom   DateTime?
+  rangeTo     DateTime?
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([householdId])
+  @@map("saved_charts")
 }

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { signupAction, type SignupActionState } from "@/lib/actions/signup-actions";
 
 export function SignupForm() {
@@ -50,27 +51,13 @@ export function SignupForm() {
         <label htmlFor="password" className="text-sm font-semibold text-muted-foreground">
           Password
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        />
+        <PasswordInput id="password" name="password" required minLength={8} autoComplete="new-password" />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="confirmPassword" className="text-sm font-semibold text-muted-foreground">
           Confirm password
         </label>
-        <input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          required
-          minLength={8}
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        />
+        <PasswordInput id="confirmPassword" name="confirmPassword" required minLength={8} autoComplete="new-password" />
       </div>
       <label className="flex items-start gap-2 text-sm text-muted-foreground">
         <input

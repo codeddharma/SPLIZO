@@ -1,73 +1,73 @@
-import { TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { Sparkline } from "./sparkline";
 
-type TrendPoint = { month: string; income: number; expense: number };
+export type DeltaInfo = { pct: number; direction: "up" | "down"; tone: "good" | "bad" } | null;
 
-export function HeadlineCards({
-  income,
-  expense,
-  savings,
-  trend,
-}: {
-  income: number;
-  expense: number;
-  savings: number;
-  trend: TrendPoint[];
-}) {
-  const cards = [
-    {
-      label: "Income this month",
-      value: income,
-      sign: "+",
-      valueClass: "text-income",
-      icon: TrendingUp,
-      iconClass: "bg-income/10 text-income",
-      spark: trend.map((t) => t.income),
-      sparkColor: "var(--income)",
-    },
-    {
-      label: "Expense this month",
-      value: expense,
-      sign: "-",
-      valueClass: "text-expense",
-      icon: TrendingDown,
-      iconClass: "bg-expense/10 text-expense",
-      spark: trend.map((t) => t.expense),
-      sparkColor: "var(--expense)",
-    },
-    {
-      label: "Savings this month",
-      value: Math.abs(savings),
-      sign: savings >= 0 ? "+" : "-",
-      valueClass: savings >= 0 ? "text-income" : "text-expense",
-      icon: PiggyBank,
-      iconClass: "bg-primary/10 text-primary",
-      spark: trend.map((t) => t.income - t.expense),
-      sparkColor: "var(--primary)",
-    },
-  ];
+export type CardSpec = {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+  iconClass: string;
+  spark?: number[];
+  sparkColor?: string;
+  delta?: DeltaInfo;
+};
 
+function formatValue(value: number) {
+  const sign = value < 0 ? "-" : "";
+  return `${sign}₹${Math.abs(value).toLocaleString("en-IN")}`;
+}
+
+// Renders bare cards (no wrapping grid) so the page can place them in a
+// shared grid row alongside other dashboard cards.
+export function HeadlineCards({ cards }: { cards: CardSpec[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <>
       {cards.map((card) => (
-        <div
-          key={card.label}
-          className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
-        >
-          <div className="min-w-0">
-            <span className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${card.iconClass}`}>
+        <div key={card.label} className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${card.iconClass}`}>
               <card.icon className="h-4 w-4" />
             </span>
-            <div className="text-xs font-medium text-muted-foreground">{card.label}</div>
-            <div className={`text-3xl font-extrabold tracking-tight ${card.valueClass}`}>
-              {card.sign}₹{card.value.toLocaleString("en-IN")}
-            </div>
+            {card.spark && card.spark.some((v) => v !== 0) && (
+              <Sparkline data={card.spark} color={card.sparkColor ?? "var(--chart-1)"} />
+            )}
           </div>
-          {card.spark.some((v) => v !== 0) && (
-            <Sparkline data={card.spark} color={card.sparkColor} />
-          )}
+          <div className="mt-3 flex items-end justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-2xl font-extrabold tracking-tight text-foreground">
+                {formatValue(card.value)}
+              </div>
+              <div className="text-xs font-medium text-muted-foreground">{card.label}</div>
+            </div>
+            {card.delta && (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                    card.delta.tone === "good" ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
+                  }`}
+                >
+                  {card.delta.direction === "up" ? (
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  )}
+                </span>
+                <span
+                  className={`text-[11px] leading-tight font-semibold ${
+                    card.delta.tone === "good" ? "text-income" : "text-expense"
+                  }`}
+                >
+                  {Math.abs(card.delta.pct).toFixed(1)}% from
+                  <br />
+                  last month
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       ))}
-    </div>
+    </>
   );
 }

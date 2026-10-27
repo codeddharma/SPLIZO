@@ -1,6 +1,6 @@
 import type { AccountType } from "@prisma/client";
 
-type ExistingAccount = { id: string; institution: string | null; last4: string | null };
+export type ExistingAccount = { id: string; institution: string | null; last4: string | null };
 
 function normalize(s: string) {
   return s.trim().toLowerCase().replace(/\./g, "");

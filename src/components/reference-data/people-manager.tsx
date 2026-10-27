@@ -5,7 +5,7 @@ import { PersonRowActions } from "@/components/reference-data/person-row-actions
 type PersonRow = {
   id: string;
   name: string;
-  user: { email: string } | null;
+  user: { id: string; email: string } | null;
 };
 
 type PendingInvite = {
@@ -18,10 +18,12 @@ export function PeopleManager({
   people,
   invites,
   origin,
+  currentUserId,
 }: {
   people: PersonRow[];
   invites: PendingInvite[];
   origin: string;
+  currentUserId: string;
 }) {
   const inviteByPersonTagId = Object.fromEntries(invites.map((i) => [i.personTagId, i]));
 
@@ -71,6 +73,7 @@ export function PeopleManager({
                 personId={person.id}
                 personName={person.name}
                 accessEmail={person.user?.email ?? null}
+                isCurrentUser={person.user?.id === currentUserId}
                 pendingInvite={pendingInvite}
                 origin={origin}
               />

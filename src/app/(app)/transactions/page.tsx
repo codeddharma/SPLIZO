@@ -8,6 +8,7 @@ import { DateRangeFilter } from "@/components/transactions/date-range-filter";
 import { Pagination } from "@/components/transactions/pagination";
 import { TableSkeleton } from "@/components/transactions/table-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { resolveDateRange, activeRangeParam } from "@/lib/date-range";
 import type { Prisma } from "@prisma/client";
 
 const STATUS_FILTERS: Record<string, Prisma.TransactionWhereInput> = {
@@ -18,50 +19,9 @@ const STATUS_FILTERS: Record<string, Prisma.TransactionWhereInput> = {
 
 const PAGE_SIZE = 30;
 
-function utcMidnight(year: number, month: number, day: number) {
-  return new Date(Date.UTC(year, month, day));
-}
-
 function getDateFilter(range: string, from?: string, to?: string): Prisma.TransactionWhereInput {
-  const now = new Date();
-
-  if (range === "last_month") {
-    return {
-      date: {
-        gte: utcMidnight(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
-        lt: utcMidnight(now.getUTCFullYear(), now.getUTCMonth(), 1),
-      },
-    };
-  }
-
-  if (range === "last_60" || range === "last_90") {
-    const days = range === "last_60" ? 60 : 90;
-    const end = utcMidnight(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-    const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
-    return { date: { gte: start, lt: end } };
-  }
-
-  if (range === "custom" && from && to) {
-    // Guard against an inverted range (e.g. a hand-edited URL) — swap rather
-    // than silently returning zero rows for an impossible date filter.
-    const [start, end] = from <= to ? [from, to] : [to, from];
-    const [fy, fm, fd] = start.split("-").map(Number);
-    const [ty, tm, td] = end.split("-").map(Number);
-    return {
-      date: {
-        gte: utcMidnight(fy, fm - 1, fd),
-        lt: utcMidnight(ty, tm - 1, td + 1),
-      },
-    };
-  }
-
-  // Default: this_month
-  return {
-    date: {
-      gte: utcMidnight(now.getUTCFullYear(), now.getUTCMonth(), 1),
-      lt: utcMidnight(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-    },
-  };
+  const { start, end } = resolveDateRange(range, from, to);
+  return { date: { gte: start, lt: end } };
 }
 
 async function TransactionsList({
@@ -171,7 +131,7 @@ export default async function TransactionsPage({
   const statusFilter = status && STATUS_FILTERS[status] ? STATUS_FILTERS[status] : {};
   const activeStatus = status && STATUS_FILTERS[status] ? status : "all";
   const page = Math.max(1, Number(pageParam) || 1);
-  const activeRange = rangeParam === "custom" && from && to ? "custom" : rangeParam || "this_month";
+  const activeRange = activeRangeParam(rangeParam, from, to);
   const dateFilter = getDateFilter(activeRange, from, to);
 
   return (
@@ -188,7 +148,13 @@ export default async function TransactionsPage({
 
       <div className="flex shrink-0 items-center justify-between">
         <StatusTabs active={activeStatus} range={activeRange} from={from} to={to} />
-        <DateRangeFilter status={activeStatus} range={activeRange} from={from} to={to} />
+        <DateRangeFilter
+          basePath="/transactions"
+          extraParams={activeStatus !== "all" ? { status: activeStatus } : {}}
+          range={activeRange}
+          from={from}
+          to={to}
+        />
       </div>
 
       <Suspense key={`${activeStatus}-${page}-${activeRange}-${from}-${to}`} fallback={<TableSkeleton />}>

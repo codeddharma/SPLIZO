@@ -6,15 +6,22 @@ import { prisma } from "@/lib/prisma";
 // transaction list.
 const NOT_LOAN_LINKED = { loan: null, loanRepayment: null, isInFamilyTransfer: false } as const;
 
-function monthRange(monthsAgo = 0) {
+export function monthRange(monthsAgo = 0) {
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthsAgo, 1));
   const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthsAgo + 1, 1));
   return { start, end };
 }
 
-export async function getHeadlineTotals(householdId: string, monthsAgo = 0) {
-  const { start, end } = monthRange(monthsAgo);
+type Range = { start: Date; end: Date };
+type Metric = "income" | "expense";
+
+function amountFilter(metric: Metric) {
+  return metric === "income" ? { gt: 0 } : { lt: 0 };
+}
+
+export async function getHeadlineTotals(householdId: string, range: Range = monthRange(0)) {
+  const { start, end } = range;
   const [incomeAgg, expenseAgg] = await Promise.all([
     prisma.transaction.aggregate({
       where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 }, ...NOT_LOAN_LINKED },
@@ -30,25 +37,26 @@ export async function getHeadlineTotals(householdId: string, monthsAgo = 0) {
   return { income, expense, savings: income - expense };
 }
 
-async function groupExpenseByField(
+type ChartSeriesPoint = { name: string; value: number };
+type ChartGroupBy = "category" | "bucket" | "account" | "person" | "month";
+
+async function groupByDirectField(
   householdId: string,
-  field: "categoryId" | "accountId" | "spentByPersonTagId",
-  monthsAgo = 0
+  field: "categoryId" | "accountId",
+  metric: Metric,
+  range: Range
 ) {
-  const { start, end } = monthRange(monthsAgo);
+  const { start, end } = range;
   const grouped = await prisma.transaction.groupBy({
     by: [field],
-    where: { householdId, date: { gte: start, lt: end }, amount: { lt: 0 }, ...NOT_LOAN_LINKED },
+    where: { householdId, date: { gte: start, lt: end }, amount: amountFilter(metric), ...NOT_LOAN_LINKED },
     _sum: { amount: true },
   });
-  return grouped.map((g) => ({
-    id: g[field] as string | null,
-    value: Math.abs(Number(g._sum.amount ?? 0)),
-  }));
+  return grouped.map((g) => ({ id: g[field] as string | null, value: Math.abs(Number(g._sum.amount ?? 0)) }));
 }
 
-export async function getCategoryBreakdown(householdId: string, monthsAgo = 0) {
-  const grouped = await groupExpenseByField(householdId, "categoryId", monthsAgo);
+async function categorySeries(householdId: string, metric: Metric, range: Range): Promise<ChartSeriesPoint[]> {
+  const grouped = await groupByDirectField(householdId, "categoryId", metric, range);
   const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
   const categories = await prisma.category.findMany({ where: { id: { in: ids } } });
   const nameById = Object.fromEntries(categories.map((c) => [c.id, c.name]));
@@ -57,11 +65,25 @@ export async function getCategoryBreakdown(householdId: string, monthsAgo = 0) {
     .sort((a, b) => b.value - a.value);
 }
 
-export async function getHomeBreakdown(householdId: string) {
-  const { start, end } = monthRange(0);
+async function accountSeries(householdId: string, metric: Metric, range: Range): Promise<ChartSeriesPoint[]> {
+  const grouped = await groupByDirectField(householdId, "accountId", metric, range);
+  const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
+  const accounts = await prisma.account.findMany({ where: { id: { in: ids } } });
+  const nameById = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
+  return grouped
+    .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unknown", value: g.value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+// Bucket (Home) and person-split amounts live on join tables, not directly on
+// Transaction, so they're grouped separately and filtered via the nested
+// transaction relation. These don't carry loan/transfer fields themselves, so
+// NOT_LOAN_LINKED can't be applied here — pre-existing, documented behavior.
+async function bucketSeries(householdId: string, metric: Metric, range: Range): Promise<ChartSeriesPoint[]> {
+  const { start, end } = range;
   const grouped = await prisma.transactionHome.groupBy({
     by: ["homeId"],
-    where: { amount: { lt: 0 }, transaction: { householdId, date: { gte: start, lt: end } } },
+    where: { amount: amountFilter(metric), transaction: { householdId, date: { gte: start, lt: end } } },
     _sum: { amount: true },
   });
   const ids = grouped.map((g) => g.homeId);
@@ -72,108 +94,80 @@ export async function getHomeBreakdown(householdId: string) {
     .sort((a, b) => b.value - a.value);
 }
 
-export async function getAccountBreakdown(householdId: string) {
-  const grouped = await groupExpenseByField(householdId, "accountId");
-  const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
-  const accounts = await prisma.account.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
-  return grouped
-    .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unknown", value: g.value }))
-    .sort((a, b) => b.value - a.value);
-}
-
-export async function getPersonSplit(householdId: string) {
-  const { start, end } = monthRange(0);
+async function personSeries(householdId: string, metric: Metric, range: Range): Promise<ChartSeriesPoint[]> {
+  const { start, end } = range;
   const grouped = await prisma.transactionPersonTag.groupBy({
     by: ["personTagId"],
-    where: { amount: { lt: 0 }, transaction: { householdId, date: { gte: start, lt: end } } },
+    where: { amount: amountFilter(metric), transaction: { householdId, date: { gte: start, lt: end } } },
     _sum: { amount: true },
   });
   const ids = grouped.map((g) => g.personTagId);
   const people = await prisma.personTag.findMany({ where: { id: { in: ids } } });
   const nameById = Object.fromEntries(people.map((p) => [p.id, p.name]));
   return grouped
-    .map((g) => ({
-      name: nameById[g.personTagId] ?? "Unknown",
-      value: Math.abs(Number(g._sum.amount ?? 0)),
-    }))
+    .map((g) => ({ name: nameById[g.personTagId] ?? "Unknown", value: Math.abs(Number(g._sum.amount ?? 0)) }))
     .sort((a, b) => b.value - a.value);
 }
 
-export async function getSpentByBreakdown(householdId: string) {
-  const grouped = await groupExpenseByField(householdId, "spentByPersonTagId");
-  const ids = grouped.map((g) => g.id).filter((id): id is string => !!id);
-  const owners = await prisma.personTag.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(owners.map((o) => [o.id, o.name]));
-  return grouped
-    .map((g) => ({ name: g.id ? (nameById[g.id] ?? "Unknown") : "Unassigned", value: g.value }))
-    .sort((a, b) => b.value - a.value);
-}
-
-export async function getCategoryRuleBreakdown(householdId: string) {
-  const { start, end } = monthRange(0);
-  const grouped = await prisma.transaction.groupBy({
-    by: ["categoryRuleId"],
-    where: {
-      householdId,
-      date: { gte: start, lt: end },
-      amount: { lt: 0 },
-      categoryRuleId: { not: null },
-      ...NOT_LOAN_LINKED,
-    },
-    _sum: { amount: true },
-  });
-  const ids = grouped.map((g) => g.categoryRuleId).filter((id): id is string => !!id);
-  const rules = await prisma.categoryRule.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(rules.map((r) => [r.id, r.name]));
-  return grouped
-    .map((g) => ({
-      name: g.categoryRuleId ? (nameById[g.categoryRuleId] ?? "Unknown") : "Unknown",
-      value: Math.abs(Number(g._sum.amount ?? 0)),
-    }))
-    .sort((a, b) => b.value - a.value);
-}
-
-export async function getIncomeBreakdown(householdId: string) {
-  const { start, end } = monthRange(0);
-  const grouped = await prisma.transaction.groupBy({
-    by: ["categoryId"],
-    where: { householdId, date: { gte: start, lt: end }, amount: { gt: 0 }, ...NOT_LOAN_LINKED },
-    _sum: { amount: true },
-  });
-  const ids = grouped.map((g) => g.categoryId).filter((id): id is string => !!id);
-  const categories = await prisma.category.findMany({ where: { id: { in: ids } } });
-  const nameById = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-  return grouped
-    .map((g) => ({
-      name: g.categoryId ? (nameById[g.categoryId] ?? "Unknown") : "Uncategorized",
-      value: Number(g._sum.amount ?? 0),
-    }))
-    .sort((a, b) => b.value - a.value);
-}
-
-export async function getTrend(householdId: string, months = 6) {
-  const results: { month: string; income: number; expense: number }[] = [];
-  for (let i = months - 1; i >= 0; i--) {
-    const totals = await getHeadlineTotals(householdId, i);
-    const { start } = monthRange(i);
-    results.push({
-      month: start.toLocaleDateString("en-IN", {
-        month: "short",
-        year: "2-digit",
-        timeZone: "UTC",
-      }),
-      income: totals.income,
-      expense: totals.expense,
+// One metric, walked month by month across the range — a line-over-time
+// series rather than a grouped/sorted breakdown.
+async function monthSeries(householdId: string, metric: Metric, range: Range): Promise<ChartSeriesPoint[]> {
+  const points: ChartSeriesPoint[] = [];
+  let cursor = new Date(Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), 1));
+  while (cursor < range.end) {
+    const start = cursor;
+    const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+    const agg = await prisma.transaction.aggregate({
+      where: {
+        householdId,
+        date: { gte: start, lt: end < range.end ? end : range.end },
+        amount: amountFilter(metric),
+        ...NOT_LOAN_LINKED,
+      },
+      _sum: { amount: true },
     });
+    points.push({
+      name: start.toLocaleDateString("en-IN", { month: "short", year: "2-digit", timeZone: "UTC" }),
+      value: Math.abs(Number(agg._sum.amount ?? 0)),
+    });
+    cursor = end;
   }
-  return results;
+  return points;
+}
+
+// Single generic engine behind every breakdown on the dashboard, default or
+// user-built: pick a metric, a dimension to group by, and a range.
+export async function getChartSeries(
+  householdId: string,
+  config: { metric: Metric; groupBy: ChartGroupBy; range: Range }
+): Promise<ChartSeriesPoint[]> {
+  const { metric, groupBy, range } = config;
+  switch (groupBy) {
+    case "category":
+      return categorySeries(householdId, metric, range);
+    case "account":
+      return accountSeries(householdId, metric, range);
+    case "bucket":
+      return bucketSeries(householdId, metric, range);
+    case "person":
+      return personSeries(householdId, metric, range);
+    case "month":
+      return monthSeries(householdId, metric, range);
+  }
+}
+
+export async function getCategoryBreakdown(householdId: string, range: Range = monthRange(0)) {
+  return getChartSeries(householdId, { metric: "expense", groupBy: "category", range });
+}
+
+export async function getHomeBreakdown(householdId: string, range: Range = monthRange(0)) {
+  return getChartSeries(householdId, { metric: "expense", groupBy: "bucket", range });
 }
 
 export async function getMonthOverMonthDelta(householdId: string) {
   const [current, previous] = await Promise.all([
-    getCategoryBreakdown(householdId, 0),
-    getCategoryBreakdown(householdId, 1),
+    getCategoryBreakdown(householdId, monthRange(0)),
+    getCategoryBreakdown(householdId, monthRange(1)),
   ]);
   const curByName = Object.fromEntries(current.map((c) => [c.name, c.value]));
   const prevByName = Object.fromEntries(previous.map((p) => [p.name, p.value]));
@@ -189,8 +183,14 @@ export async function getMonthOverMonthDelta(householdId: string) {
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
 
-export async function getNeedsAttentionCount(householdId: string) {
-  return prisma.transaction.count({
-    where: { householdId, categoryStatus: { in: ["needs_review", "unmapped"] }, ...NOT_LOAN_LINKED },
-  });
+export async function getReviewCounts(householdId: string, range: Range = monthRange(0)) {
+  const [needsReview, unmapped] = await Promise.all([
+    prisma.transaction.count({
+      where: { householdId, categoryStatus: "needs_review", date: { gte: range.start, lt: range.end }, ...NOT_LOAN_LINKED },
+    }),
+    prisma.transaction.count({
+      where: { householdId, categoryStatus: "unmapped", date: { gte: range.start, lt: range.end }, ...NOT_LOAN_LINKED },
+    }),
+  ]);
+  return { needsReview, unmapped };
 }

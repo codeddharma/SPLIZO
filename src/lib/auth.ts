@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   // Production runs behind an nginx reverse proxy that only forwards to a loopback-bound Next server.
   trustHost: true,
   session: { strategy: "jwt" },
@@ -35,10 +35,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt: async ({ token, user }) => {
+    jwt: async ({ token, user, trigger, session }) => {
       if (user) {
         token.userId = user.id;
         token.householdId = user.householdId;
+      }
+      // Settings actions call unstable_update({ name }) after writing the DB
+      // so the JWT (and every session read from it) picks up the change
+      // immediately instead of staying frozen until the user logs back in.
+      if (trigger === "update" && session?.user?.name) {
+        token.name = session.user.name;
       }
       return token;
     },

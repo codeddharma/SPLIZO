@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { getHouseholdId } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 import { createHomeAction, deactivateHomeAction } from "@/lib/actions/reference-data-actions";
 import { SimpleTagManager } from "@/components/reference-data/simple-tag-manager";
 import { PeopleManager } from "@/components/reference-data/people-manager";
@@ -11,10 +11,12 @@ import { ListPanelSkeleton } from "@/components/reference-data/list-panel-skelet
 async function HouseholdPanel({
   activeTab,
   householdId,
+  currentUserId,
   origin,
 }: {
   activeTab: "people" | "place";
   householdId: string;
+  currentUserId: string;
   origin: string;
 }) {
   if (activeTab === "place") {
@@ -40,7 +42,7 @@ async function HouseholdPanel({
     prisma.personTag.findMany({
       where: { householdId, isActive: true },
       orderBy: { name: "asc" },
-      include: { user: { select: { email: true } } },
+      include: { user: { select: { id: true, email: true } } },
     }),
     prisma.invite.findMany({
       where: { householdId, status: "pending" },
@@ -48,7 +50,9 @@ async function HouseholdPanel({
     }),
   ]);
 
-  return <PeopleManager people={people} invites={invites} origin={origin} />;
+  return (
+    <PeopleManager people={people} invites={invites} origin={origin} currentUserId={currentUserId} />
+  );
 }
 
 export default async function HouseholdPage({
@@ -58,7 +62,8 @@ export default async function HouseholdPage({
 }) {
   const { tab } = await searchParams;
   const activeTab = tab === "place" ? "place" : "people";
-  const householdId = await getHouseholdId();
+  const session = await requireSession();
+  const householdId = session.user.householdId;
   const headerList = await headers();
   const origin = `${headerList.get("x-forwarded-proto") ?? "http"}://${headerList.get("host")}`;
 
@@ -66,7 +71,12 @@ export default async function HouseholdPage({
     <div className="flex h-full w-full flex-col gap-6 p-6">
       <EntityTabs active={activeTab} />
       <Suspense key={activeTab} fallback={<ListPanelSkeleton formFields={1} />}>
-        <HouseholdPanel activeTab={activeTab} householdId={householdId} origin={origin} />
+        <HouseholdPanel
+          activeTab={activeTab}
+          householdId={householdId}
+          currentUserId={session.user.id}
+          origin={origin}
+        />
       </Suspense>
     </div>
   );

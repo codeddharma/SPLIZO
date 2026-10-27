@@ -37,11 +37,23 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
   );
 }
 
-export function Logo({ size = 28, className }: { size?: number; className?: string }) {
+export function Logo({
+  size = 28,
+  className,
+  hideWordmark = false,
+}: {
+  size?: number;
+  className?: string;
+  hideWordmark?: boolean;
+}) {
   return (
     <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <LogoMark size={size} />
-      <span className="text-lg font-semibold tracking-tight">Splizo</span>
+      <LogoMark size={size} className="transition-transform duration-150 group-hover:scale-105" />
+      {!hideWordmark && (
+        <span className="text-lg font-semibold tracking-tight transition-colors duration-150 group-hover:text-primary">
+          Splizo
+        </span>
+      )}
     </span>
   );
 }

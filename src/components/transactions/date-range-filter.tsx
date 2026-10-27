@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, ChevronDown } from "lucide-react";
+import { applyRangeParams } from "@/lib/date-range";
 
 const PRESETS = [
   { value: "this_month", label: "This month" },
@@ -11,25 +12,28 @@ const PRESETS = [
   { value: "last_90", label: "Last 90 days" },
 ] as const;
 
-function buildHref(status: string, range: string, from?: string, to?: string) {
-  const params = new URLSearchParams();
-  if (status !== "all") params.set("status", status);
-  if (range !== "this_month") params.set("range", range);
-  if (range === "custom") {
-    if (from) params.set("from", from);
-    if (to) params.set("to", to);
-  }
+function buildHref(
+  basePath: string,
+  extraParams: Record<string, string>,
+  range: string,
+  from?: string,
+  to?: string
+) {
+  const params = new URLSearchParams(extraParams);
+  applyRangeParams(params, range, from, to);
   const query = params.toString();
-  return query ? `/transactions?${query}` : "/transactions";
+  return query ? `${basePath}?${query}` : basePath;
 }
 
 export function DateRangeFilter({
-  status,
+  basePath,
+  extraParams = {},
   range,
   from,
   to,
 }: {
-  status: string;
+  basePath: string;
+  extraParams?: Record<string, string>;
   range: string;
   from?: string;
   to?: string;
@@ -50,7 +54,7 @@ export function DateRangeFilter({
 
   function goTo(nextRange: string, nextFrom?: string, nextTo?: string) {
     setOpen(false);
-    router.push(buildHref(status, nextRange, nextFrom, nextTo));
+    router.push(buildHref(basePath, extraParams, nextRange, nextFrom, nextTo));
   }
 
   const activeLabel =

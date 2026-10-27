@@ -44,6 +44,8 @@
   --color-income: var(--income);
   --color-expense: var(--expense);
   --color-warning: var(--warning);
+  --color-balance: var(--balance);
+  --color-highlight: var(--highlight);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -77,6 +79,8 @@
   --income: #16A34A;
   --expense: #DC2626;
   --warning: #7C3AED;
+  --balance: #0D9488;
+  --highlight: #2563EB;
   --chart-1: #F59E0B;
   --chart-2: #0D9488;
   --chart-3: #6366F1;
@@ -117,6 +121,8 @@
   --income: #4ADE80;
   --expense: #F87171;
   --warning: #A78BFA;
+  --balance: #2DD4BF;
+  --highlight: #60A5FA;
   --chart-1: #FBBF24;
   --chart-2: #2DD4BF;
   --chart-3: #818CF8;
@@ -145,5 +151,19 @@
   }
   h1, h2, h3, h4 {
     @apply font-bold tracking-tight;
+  }
+
+  /* Sidebar width follows --sidebar-w (set by the no-flash collapse script
+     in app/layout.tsx and live-toggled by useSidebarCollapsed) so collapsing
+     never requires a client re-render of the layout shell itself. Content is
+     a normal flex sibling, so it reflows automatically — no offset needed.
+     Desktop only, matching the sidebar's own sm: breakpoint. */
+  .app-sidebar-width {
+    width: 16rem;
+  }
+  @media (min-width: 640px) {
+    .app-sidebar-width {
+      width: var(--sidebar-w, 16rem);
+    }
   }
 }

@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/session";
-import { signOut } from "@/lib/auth";
+import { signOut, unstable_update } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -64,7 +64,13 @@ export async function updateNameAction(
     data: { name: parsed.data.name },
   });
 
-  revalidatePath("/settings");
+  // Refreshes the JWT itself (not just the DB) so the sidebar/topbar, which
+  // read the name straight off the session, update without a re-login.
+  await unstable_update({ user: { name: parsed.data.name } });
+  // "/" is served by the root layout only — (app)/layout.tsx (where the
+  // sidebar/topbar actually live) only wraps nested routes, so it has to be
+  // revalidated via a path that's actually inside that route group.
+  revalidatePath("/settings", "layout");
   return { success: "Name updated." };
 }
 

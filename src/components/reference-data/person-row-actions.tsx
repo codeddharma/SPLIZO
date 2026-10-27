@@ -21,12 +21,14 @@ export function PersonRowActions({
   personId,
   personName,
   accessEmail,
+  isCurrentUser,
   pendingInvite,
   origin,
 }: {
   personId: string;
   personName: string;
   accessEmail: string | null;
+  isCurrentUser: boolean;
   pendingInvite: { id: string; token: string } | null;
   origin: string;
 }) {
@@ -47,7 +49,7 @@ export function PersonRowActions({
           <MoreVertical className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {accessEmail ? (
+          {accessEmail && isCurrentUser ? null : accessEmail ? (
             <DropdownMenuItem onClick={() => setModal("remove-access")}>
               Remove access
             </DropdownMenuItem>
@@ -63,7 +65,7 @@ export function PersonRowActions({
           ) : (
             <DropdownMenuItem onClick={() => setModal("invite")}>Invite</DropdownMenuItem>
           )}
-          <DropdownMenuSeparator />
+          {accessEmail && isCurrentUser ? null : <DropdownMenuSeparator />}
           <DropdownMenuItem variant="destructive" onClick={() => setModal("delete")}>
             Delete
           </DropdownMenuItem>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export const metadata: Metadata = {
   title: "Log In",
@@ -63,13 +64,7 @@ export default async function LoginPage({
           <label htmlFor="password" className="text-sm font-semibold text-muted-foreground">
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          />
+          <PasswordInput id="password" name="password" required autoComplete="current-password" />
         </div>
         <SubmitButton
           className="rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
