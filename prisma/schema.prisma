@@ -367,6 +367,9 @@ model LoanRepayment {
 enum ChartMetric {
   income
   expense
+  // Only valid when groupBy is "month" — plots income and expense as two
+  // lines on the same chart instead of a single series.
+  compare
 }
 
 enum ChartGroupBy {

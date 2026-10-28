@@ -1,14 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
 import { getLoansWithBalances, getLoanSummary, getUnlinkedTransactions } from "@/lib/queries/loans";
-import {
-  createContactAction,
-  createLoanAction,
-  addRepaymentAction,
-} from "@/lib/actions/loan-actions";
-import { SubmitButton } from "@/components/ui/submit-button";
-import { LoanForm } from "@/components/loans/loan-form";
-import { RepaymentForm } from "@/components/loans/repayment-form";
+import { AddContactButton } from "@/components/loans/add-contact-button";
+import { AddLoanButton } from "@/components/loans/add-loan-button";
+import { LoanCard } from "@/components/loans/loan-card";
 
 export default async function LoansPage() {
   const householdId = await getHouseholdId();
@@ -23,16 +18,27 @@ export default async function LoansPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-6 p-6">
-      <div className="shrink-0">
-        <h1 className="text-3xl font-extrabold tracking-tight">Loans</h1>
-        <p className="text-sm text-muted-foreground">
-          Money lent to or borrowed from family/relatives — tracked separately from household
-          spending.
-        </p>
+    <div className="flex w-full flex-col gap-6 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Loans</h1>
+          <p className="text-sm text-muted-foreground">
+            Money lent to or borrowed from family/relatives — tracked separately from household
+            spending.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <AddContactButton />
+          <AddLoanButton
+            contacts={contacts}
+            accounts={accounts}
+            unlinkedTransactions={unlinkedTransactions}
+            today={today}
+          />
+        </div>
       </div>
 
-      <div className="grid shrink-0 grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs text-muted-foreground">Outstanding — lent</div>
           <div className="text-2xl font-extrabold tracking-tight text-income">
@@ -47,94 +53,38 @@ export default async function LoansPage() {
         </div>
       </div>
 
-      <form
-        action={createContactAction}
-        className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-end"
-      >
-        <div className="flex flex-1 flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">Contact name</label>
-          <input
-            name="name"
-            placeholder="e.g. Uncle Raj"
-            required
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">Phone (optional)</label>
-          <input
-            name="phone"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          />
-        </div>
-        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
-          Add contact
-        </SubmitButton>
-      </form>
-
-      {contacts.length === 0 ? (
-        <div className="shrink-0 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-          Add a contact above before logging a loan.
+      {loans.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          No loans logged yet.
         </div>
       ) : (
-        <LoanForm
-          contacts={contacts}
-          accounts={accounts}
-          unlinkedTransactions={unlinkedTransactions}
-          today={today}
-          createLoanAction={createLoanAction}
-        />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {loans.map((loan) => (
+            <LoanCard
+              key={loan.id}
+              loan={{
+                id: loan.id,
+                direction: loan.direction,
+                status: loan.status,
+                date: loan.date,
+                openingAmount: Number(loan.openingAmount),
+                repaid: loan.repaid,
+                outstanding: loan.outstanding,
+                contact: { id: loan.contact.id, name: loan.contact.name },
+                repayments: loan.repayments.map((r) => ({
+                  id: r.id,
+                  amount: Number(r.amount),
+                  date: r.date,
+                  notes: r.notes,
+                })),
+              }}
+              accounts={accounts}
+              unlinkedTransactions={unlinkedTransactions}
+              today={today}
+            />
+          ))}
+        </div>
       )}
-
-      <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-y-auto rounded-xl border border-border bg-card">
-        {loans.length === 0 && (
-          <div className="p-6 text-center text-sm text-muted-foreground">No loans logged yet.</div>
-        )}
-        {loans.map((loan) => (
-          <div key={loan.id} className="flex flex-col gap-2 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                {loan.contact.name}
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    loan.direction === "lent"
-                      ? "bg-income/10 text-income"
-                      : "bg-expense/10 text-expense"
-                  }`}
-                >
-                  {loan.direction === "lent" ? "Lent" : "Borrowed"}
-                </span>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    loan.status === "settled"
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-warning/10 text-warning"
-                  }`}
-                >
-                  {loan.status === "settled" ? "Settled" : "Open"}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Opening ₹{Number(loan.openingAmount).toLocaleString("en-IN")} · Repaid ₹
-                {loan.repaid.toLocaleString("en-IN")} · Outstanding{" "}
-                <span className="font-semibold text-foreground">
-                  ₹{loan.outstanding.toLocaleString("en-IN")}
-                </span>
-              </div>
-            </div>
-            {loan.status === "open" && (
-              <RepaymentForm
-                loanId={loan.id}
-                direction={loan.direction}
-                accounts={accounts}
-                unlinkedTransactions={unlinkedTransactions}
-                today={today}
-                addRepaymentAction={addRepaymentAction}
-              />
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

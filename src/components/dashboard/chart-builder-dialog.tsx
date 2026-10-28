@@ -16,6 +16,7 @@ import { createChartAction, updateChartAction, type ChartActionState } from "@/l
 const METRICS = [
   { value: "income", label: "Income" },
   { value: "expense", label: "Expense" },
+  { value: "compare", label: "Compare income vs expense" },
 ] as const;
 
 const GROUP_BYS = [
@@ -43,7 +44,7 @@ const RANGES = [
 export type SavedChartDTO = {
   id: string;
   title: string;
-  metric: "income" | "expense";
+  metric: "income" | "expense" | "compare";
   groupBy: "category" | "bucket" | "account" | "person" | "month";
   chartType: "bar" | "donut" | "line";
   rangeKey: string;
@@ -70,6 +71,7 @@ export function ChartBuilderDialog({
   const [state, formAction, pending] = useActionState<ChartActionState, FormData>(action, null);
   const wasPending = useRef(false);
 
+  const [metric, setMetric] = useState(defaults?.metric ?? "expense");
   const [groupBy, setGroupBy] = useState(defaults?.groupBy ?? "category");
   const [chartType, setChartType] = useState(defaults?.chartType ?? "bar");
   const [rangeKey, setRangeKey] = useState(defaults?.rangeKey ?? defaultRange.rangeKey);
@@ -77,6 +79,9 @@ export function ChartBuilderDialog({
   // "Over time" only makes sense as a line chart — derive it rather than
   // syncing chartType via an effect (fewer moving parts, no extra render).
   const effectiveChartType = isMonth ? "line" : chartType;
+  // "Compare" only makes sense for "Over time" — fall back to Expense if the
+  // user picked Compare then switched the dimension away from month.
+  const effectiveMetric = isMonth ? metric : metric === "compare" ? "expense" : metric;
 
   useEffect(() => {
     if (wasPending.current && !pending && !state) {
@@ -110,8 +115,13 @@ export function ChartBuilderDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Metric</label>
-              <select name="metric" defaultValue={defaults?.metric ?? "expense"} className={selectClass}>
-                {METRICS.map((m) => (
+              <select
+                name="metric"
+                value={effectiveMetric}
+                onChange={(e) => setMetric(e.target.value as typeof metric)}
+                className={selectClass}
+              >
+                {METRICS.filter((m) => isMonth || m.value !== "compare").map((m) => (
                   <option key={m.value} value={m.value}>
                     {m.label}
                   </option>
@@ -160,43 +170,56 @@ export function ChartBuilderDialog({
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Date range</label>
-            <select
-              name="rangeKey"
-              value={rangeKey}
-              onChange={(e) => setRangeKey(e.target.value)}
-              className={selectClass}
-            >
-              {RANGES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {mode === "edit" ? (
+            // Range is edited from the quick selector on the chart card
+            // itself (changed far more often than the rest of these
+            // settings) — just carry the existing value through unchanged.
+            <>
+              <input type="hidden" name="rangeKey" value={defaults?.rangeKey} />
+              <input type="hidden" name="rangeFrom" value={defaults?.rangeFrom ?? ""} />
+              <input type="hidden" name="rangeTo" value={defaults?.rangeTo ?? ""} />
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">Date range</label>
+                <select
+                  name="rangeKey"
+                  value={rangeKey}
+                  onChange={(e) => setRangeKey(e.target.value)}
+                  className={selectClass}
+                >
+                  {RANGES.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {rangeKey === "custom" && (
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-muted-foreground">From</span>
-                <input
-                  type="date"
-                  name="rangeFrom"
-                  defaultValue={defaults?.rangeFrom ?? defaultRange.from}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-muted-foreground">To</span>
-                <input
-                  type="date"
-                  name="rangeTo"
-                  defaultValue={defaults?.rangeTo ?? defaultRange.to}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                />
-              </label>
-            </div>
+              {rangeKey === "custom" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">From</span>
+                    <input
+                      type="date"
+                      name="rangeFrom"
+                      defaultValue={defaultRange.from}
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">To</span>
+                    <input
+                      type="date"
+                      name="rangeTo"
+                      defaultValue={defaultRange.to}
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    />
+                  </label>
+                </div>
+              )}
+            </>
           )}
 
           {state?.error && <p className="text-xs text-expense">{state.error}</p>}

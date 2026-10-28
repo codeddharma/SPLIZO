@@ -37,7 +37,8 @@ export async function getHeadlineTotals(householdId: string, range: Range = mont
   return { income, expense, savings: income - expense };
 }
 
-type ChartSeriesPoint = { name: string; value: number };
+export type ChartSeriesPoint = { name: string; value: number };
+export type ChartComparePoint = { name: string; income: number; expense: number };
 type ChartGroupBy = "category" | "bucket" | "account" | "person" | "month";
 
 async function groupByDirectField(
@@ -135,13 +136,43 @@ async function monthSeries(householdId: string, metric: Metric, range: Range): P
   return points;
 }
 
+// Income and expense walked month by month and zipped together — the "Over
+// time" comparison line. Reuses monthSeries so the per-month aggregation
+// logic lives in exactly one place.
+async function monthCompareSeries(householdId: string, range: Range): Promise<ChartComparePoint[]> {
+  const [income, expense] = await Promise.all([
+    monthSeries(householdId, "income", range),
+    monthSeries(householdId, "expense", range),
+  ]);
+  return income.map((point, i) => ({ name: point.name, income: point.value, expense: expense[i].value }));
+}
+
 // Single generic engine behind every breakdown on the dashboard, default or
-// user-built: pick a metric, a dimension to group by, and a range.
+// user-built: pick a metric, a dimension to group by, and a range. "compare"
+// is only valid with groupBy "month" (enforced in the Zod schema) and
+// returns a two-series shape instead of the usual {name, value}[]. Overloads
+// let a fixed "income"/"expense" call site keep the plain ChartSeriesPoint[]
+// type instead of always widening to the union.
 export async function getChartSeries(
   householdId: string,
   config: { metric: Metric; groupBy: ChartGroupBy; range: Range }
-): Promise<ChartSeriesPoint[]> {
+): Promise<ChartSeriesPoint[]>;
+export async function getChartSeries(
+  householdId: string,
+  config: { metric: "compare"; groupBy: ChartGroupBy; range: Range }
+): Promise<ChartComparePoint[]>;
+export async function getChartSeries(
+  householdId: string,
+  config: { metric: Metric | "compare"; groupBy: ChartGroupBy; range: Range }
+): Promise<ChartSeriesPoint[] | ChartComparePoint[]>;
+export async function getChartSeries(
+  householdId: string,
+  config: { metric: Metric | "compare"; groupBy: ChartGroupBy; range: Range }
+): Promise<ChartSeriesPoint[] | ChartComparePoint[]> {
   const { metric, groupBy, range } = config;
+  if (metric === "compare") {
+    return monthCompareSeries(householdId, range);
+  }
   switch (groupBy) {
     case "category":
       return categorySeries(householdId, metric, range);
@@ -157,11 +188,11 @@ export async function getChartSeries(
 }
 
 export async function getCategoryBreakdown(householdId: string, range: Range = monthRange(0)) {
-  return getChartSeries(householdId, { metric: "expense", groupBy: "category", range });
+  return categorySeries(householdId, "expense", range);
 }
 
 export async function getHomeBreakdown(householdId: string, range: Range = monthRange(0)) {
-  return getChartSeries(householdId, { metric: "expense", groupBy: "bucket", range });
+  return bucketSeries(householdId, "expense", range);
 }
 
 export async function getMonthOverMonthDelta(householdId: string) {

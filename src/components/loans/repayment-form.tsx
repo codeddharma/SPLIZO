@@ -19,17 +19,19 @@ export function RepaymentForm({
   accounts,
   unlinkedTransactions,
   today,
-  addRepaymentAction,
+  formAction,
+  serverError,
 }: {
   loanId: string;
   direction: "lent" | "borrowed";
   accounts: Option[];
   unlinkedTransactions: Transaction[];
   today: string;
-  addRepaymentAction: (formData: FormData) => Promise<void>;
+  formAction: (formData: FormData) => void;
+  serverError?: string | null;
 }) {
   const [mode, setMode] = useState<"new" | "existing">("new");
-  const [error, setError] = useState<string | null>(null);
+  const [clientError, setClientError] = useState<string | null>(null);
 
   // A repayment received on money you lent comes in; a repayment you make on
   // money you borrowed goes out.
@@ -40,45 +42,46 @@ export function RepaymentForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (mode === "existing" && !new FormData(e.currentTarget).get("transactionId")) {
       e.preventDefault();
-      setError("Choose a transaction to link.");
+      setClientError("Choose a transaction to link.");
     }
   }
 
   return (
-    <form action={addRepaymentAction} onSubmit={handleSubmit} className="flex flex-col gap-1.5">
-      <div className="flex flex-wrap items-end gap-2">
-        <input type="hidden" name="loanId" value={loanId} />
-        <input type="hidden" name="mode" value={mode} />
+    <form action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <input type="hidden" name="loanId" value={loanId} />
+      <input type="hidden" name="mode" value={mode} />
 
-        <div className="flex gap-1 rounded-lg bg-muted p-1">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("new");
-              setError(null);
-            }}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-              mode === "new" ? "bg-card shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            New
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("existing");
-              setError(null);
-            }}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-              mode === "existing" ? "bg-card shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            Link existing
-          </button>
-        </div>
+      <div className="flex gap-1 rounded-lg bg-muted p-1">
+        <button
+          type="button"
+          onClick={() => {
+            setMode("new");
+            setClientError(null);
+          }}
+          className={`flex-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+            mode === "new" ? "bg-card shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          New transaction
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("existing");
+            setClientError(null);
+          }}
+          className={`flex-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+            mode === "existing" ? "bg-card shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          Link existing
+        </button>
+      </div>
 
-        {mode === "new" ? (
-          <>
+      {mode === "new" ? (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Account</label>
             <select
               name="accountId"
               required
@@ -90,15 +93,20 @@ export function RepaymentForm({
                 </option>
               ))}
             </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Amount (₹)</label>
             <input
               name="amount"
               type="number"
               step="0.01"
               min="0.01"
-              placeholder="Repayment amount"
               required
-              className="w-36 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Date</label>
             <input
               name="date"
               type="date"
@@ -106,23 +114,26 @@ export function RepaymentForm({
               required
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
             />
-          </>
-        ) : (
-          <TransactionPicker
-            name="transactionId"
-            transactions={candidateTransactions}
-            onSelect={() => setError(null)}
-          />
-        )}
+          </div>
+        </div>
+      ) : (
+        <TransactionPicker
+          name="transactionId"
+          transactions={candidateTransactions}
+          onSelect={() => setClientError(null)}
+        />
+      )}
 
-        <SubmitButton
-          className="rounded-lg bg-secondary px-3 py-2 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-muted disabled:opacity-60"
-          pendingText="Adding…"
-        >
-          Add repayment
-        </SubmitButton>
-      </div>
-      {error && <p className="text-xs font-medium text-expense">{error}</p>}
+      {(clientError || serverError) && (
+        <p className="text-xs font-medium text-expense">{clientError ?? serverError}</p>
+      )}
+
+      <SubmitButton
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+        pendingText="Adding…"
+      >
+        Add repayment
+      </SubmitButton>
     </form>
   );
 }

@@ -14,7 +14,7 @@ type Transaction = {
 };
 
 const MODE_BUTTON =
-  "rounded-lg px-3 py-2 text-sm font-semibold transition-colors";
+  "flex-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors";
 
 function ModeToggle({ mode, onChange }: { mode: "new" | "existing"; onChange: (m: "new" | "existing") => void }) {
   return (
@@ -42,17 +42,19 @@ export function LoanForm({
   accounts,
   unlinkedTransactions,
   today,
-  createLoanAction,
+  formAction,
+  serverError,
 }: {
   contacts: Option[];
   accounts: Option[];
   unlinkedTransactions: Transaction[];
   today: string;
-  createLoanAction: (formData: FormData) => Promise<void>;
+  formAction: (formData: FormData) => void;
+  serverError?: string | null;
 }) {
   const [mode, setMode] = useState<"new" | "existing">("new");
   const [direction, setDirection] = useState<"lent" | "borrowed">("lent");
-  const [error, setError] = useState<string | null>(null);
+  const [clientError, setClientError] = useState<string | null>(null);
 
   const candidateTransactions = unlinkedTransactions.filter((t) =>
     direction === "lent" ? t.amount < 0 : t.amount > 0
@@ -61,26 +63,22 @@ export function LoanForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (mode === "existing" && !new FormData(e.currentTarget).get("transactionId")) {
       e.preventDefault();
-      setError("Choose a transaction to link.");
+      setClientError("Choose a transaction to link.");
     }
   }
 
   return (
-    <form
-      action={createLoanAction}
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
-    >
+    <form action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-3">
       <input type="hidden" name="mode" value={mode} />
       <ModeToggle
         mode={mode}
         onChange={(m) => {
           setMode(m);
-          setError(null);
+          setClientError(null);
         }}
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-muted-foreground">Contact</label>
           <select
@@ -111,7 +109,7 @@ export function LoanForm({
 
         {mode === "new" ? (
           <>
-            <div className="flex flex-col gap-1.5">
+            <div className="col-span-2 flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Account</label>
               <select
                 name="accountId"
@@ -133,7 +131,7 @@ export function LoanForm({
                 step="0.01"
                 min="0.01"
                 required
-                className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -148,19 +146,22 @@ export function LoanForm({
             </div>
           </>
         ) : (
-          <TransactionPicker
-            name="transactionId"
-            transactions={candidateTransactions}
-            placeholder={direction === "lent" ? "Choose an outgoing transaction…" : "Choose an incoming transaction…"}
-            onSelect={() => setError(null)}
-          />
+          <div className="col-span-2">
+            <TransactionPicker
+              name="transactionId"
+              transactions={candidateTransactions}
+              placeholder={direction === "lent" ? "Choose an outgoing transaction…" : "Choose an incoming transaction…"}
+              onSelect={() => setClientError(null)}
+            />
+          </div>
         )}
-
-        <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
-          Add loan
-        </SubmitButton>
       </div>
-      {error && <p className="text-xs font-medium text-expense">{error}</p>}
+      {(clientError || serverError) && (
+        <p className="text-xs font-medium text-expense">{clientError ?? serverError}</p>
+      )}
+      <SubmitButton className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">
+        Add loan
+      </SubmitButton>
     </form>
   );
 }

@@ -132,52 +132,59 @@ export default async function DashboardPage({
           <h1 className="text-3xl font-extrabold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Spending breakdown for the selected period.</p>
         </div>
-        <DateRangeFilter basePath="/dashboard" range={activeRange} from={from} to={to} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <HeadlineCards cards={cards} />
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
-              <HandCoins className="h-4 w-4" />
-            </span>
-            <h2 className="text-base font-bold text-foreground">Loans</h2>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-xs text-muted-foreground">Lent</div>
-              <div className="text-lg font-extrabold text-income">
-                ₹{loanSummary.totalLent.toLocaleString("en-IN")}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Borrowed</div>
-              <div className="text-lg font-extrabold text-expense">
-                ₹{loanSummary.totalBorrowed.toLocaleString("en-IN")}
-              </div>
-            </div>
-          </div>
+      {/* Everything in here shares the one date-range filter below — grouped
+          in a single bordered card so that's visually obvious. */}
+      <div className="flex flex-col gap-6 rounded-xl border border-border p-4 md:p-6">
+        <div className="flex justify-end">
+          <DateRangeFilter basePath="/dashboard" range={activeRange} from={from} to={to} />
         </div>
-        <NeedsAttentionWidget
-          needsReview={reviewCounts.needsReview}
-          unmapped={reviewCounts.unmapped}
-          range={activeRange}
-          from={from}
-          to={to}
-        />
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        <Card title="Spend by category">
-          <CategoryDonut data={categoryBreakdown} />
-        </Card>
-        <Card title="Spend by bucket">
-          <BarBreakdown data={homeBreakdown} />
-        </Card>
-        <Card title="Month-over-month (expense categories)">
-          <MomDeltaTable data={momDelta} />
-        </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <HeadlineCards cards={cards} />
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                <HandCoins className="h-4 w-4" />
+              </span>
+              <h2 className="text-base font-bold text-foreground">Loans</h2>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-xs text-muted-foreground">Lent</div>
+                <div className="text-lg font-extrabold text-income">
+                  ₹{loanSummary.totalLent.toLocaleString("en-IN")}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Borrowed</div>
+                <div className="text-lg font-extrabold text-expense">
+                  ₹{loanSummary.totalBorrowed.toLocaleString("en-IN")}
+                </div>
+              </div>
+            </div>
+          </div>
+          <NeedsAttentionWidget
+            needsReview={reviewCounts.needsReview}
+            unmapped={reviewCounts.unmapped}
+            range={activeRange}
+            from={from}
+            to={to}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          <Card title="Spend by category">
+            <CategoryDonut data={categoryBreakdown} />
+          </Card>
+          <Card title="Spend by bucket">
+            <BarBreakdown data={homeBreakdown} />
+          </Card>
+          <Card title="Month-over-month (expense categories)">
+            <MomDeltaTable data={momDelta} />
+          </Card>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">

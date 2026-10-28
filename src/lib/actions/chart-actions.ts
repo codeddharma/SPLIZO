@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getHouseholdId } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { chartSchema } from "@/lib/validation/chart-schema";
+import { chartSchema, chartRangeSchema } from "@/lib/validation/chart-schema";
 
 export type ChartActionState = { error: string } | null;
 
@@ -72,6 +72,40 @@ export async function updateChartAction(
       metric,
       groupBy,
       chartType,
+      rangeKey,
+      rangeFrom: rangeKey === "custom" ? parseRangeDate(rangeFrom!) : null,
+      rangeTo: rangeKey === "custom" ? parseRangeDate(rangeTo!) : null,
+    },
+  });
+  if (result.count === 0) {
+    return { error: "Chart not found." };
+  }
+  revalidatePath("/dashboard");
+  return null;
+}
+
+// Patches just the range, for the quick selector on each chart card — users
+// change the range far more often than the rest of a chart's settings, and
+// shouldn't have to open the edit dialog every time.
+export async function updateChartRangeAction(
+  _prev: ChartActionState,
+  formData: FormData
+): Promise<ChartActionState> {
+  const householdId = await getHouseholdId();
+  const id = String(formData.get("id") ?? "");
+  const parsed = chartRangeSchema.safeParse({
+    rangeKey: formData.get("rangeKey"),
+    rangeFrom: formData.get("rangeFrom") ?? "",
+    rangeTo: formData.get("rangeTo") ?? "",
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the range and try again." };
+  }
+  const { rangeKey, rangeFrom, rangeTo } = parsed.data;
+
+  const result = await prisma.savedChart.updateMany({
+    where: { id, householdId },
+    data: {
       rangeKey,
       rangeFrom: rangeKey === "custom" ? parseRangeDate(rangeFrom!) : null,
       rangeTo: rangeKey === "custom" ? parseRangeDate(rangeTo!) : null,
