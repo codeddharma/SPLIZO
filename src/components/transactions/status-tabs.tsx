@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { applyRangeParams } from "@/lib/date-range";
 
 const TABS = [
   { value: "all", label: "All" },
@@ -10,11 +11,7 @@ const TABS = [
 function buildHref(status: string, range: string, from?: string, to?: string) {
   const params = new URLSearchParams();
   if (status !== "all") params.set("status", status);
-  if (range !== "this_month") params.set("range", range);
-  if (range === "custom") {
-    if (from) params.set("from", from);
-    if (to) params.set("to", to);
-  }
+  applyRangeParams(params, range, from, to);
   const query = params.toString();
   return query ? `/transactions?${query}` : "/transactions";
 }
@@ -31,17 +28,17 @@ export function StatusTabs({
   to?: string;
 }) {
   return (
-    <div className="flex gap-1 border-b border-border">
+    <div className="flex gap-2 overflow-x-auto">
       {TABS.map((tab) => {
         const isActive = active === tab.value;
         return (
           <Link
             key={tab.value}
             href={buildHref(tab.value, range, from, to)}
-            className={`border-b-2 px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
               isActive
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
             {tab.label}

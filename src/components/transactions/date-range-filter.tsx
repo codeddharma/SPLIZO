@@ -31,18 +31,33 @@ export function DateRangeFilter({
   range,
   from,
   to,
+  align = "right",
 }: {
   basePath: string;
   extraParams?: Record<string, string>;
   range: string;
   from?: string;
   to?: string;
+  // Which edge of the trigger the popup hangs off. "auto" tracks a layout
+  // whose trigger moves from the left edge on mobile to the right edge at
+  // the sm breakpoint (e.g. a header that stacks on mobile) so the popup
+  // never runs off either side, on any screen size.
+  align?: "left" | "right" | "auto";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [customFrom, setCustomFrom] = useState(from ?? "");
   const [customTo, setCustomTo] = useState(to ?? "");
   const ref = useRef<HTMLDivElement>(null);
+
+  // Keep the custom-range inputs in sync with the actually-applied range —
+  // otherwise switching to a preset after using a custom range left the
+  // old from/to sitting in these fields with no indication they'd been
+  // dropped.
+  useEffect(() => {
+    setCustomFrom(from ?? "");
+    setCustomTo(to ?? "");
+  }, [from, to]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -77,12 +92,15 @@ export function DateRangeFilter({
       </button>
 
       {open && (
-        <>
-          <div
-            className="fixed inset-0 z-20 bg-black/30 backdrop-blur-[1px]"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-0 z-30 mt-1 w-64 rounded-lg border border-border bg-card p-1 shadow-lg">
+        <div
+          className={`absolute z-30 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-card p-1 shadow-lg ${
+            align === "left"
+              ? "left-0"
+              : align === "auto"
+                ? "left-0 sm:left-auto sm:right-0"
+                : "right-0"
+          }`}
+        >
             {PRESETS.map((preset) => (
               <button
                 key={preset.value}
@@ -135,8 +153,7 @@ export function DateRangeFilter({
                 Apply
               </button>
             </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

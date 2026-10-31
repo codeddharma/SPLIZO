@@ -46,6 +46,10 @@ export function AppSidebar({
   onCloseMobile: () => void;
 }) {
   const pathname = usePathname();
+  // The desktop collapse preference shouldn't apply to the mobile overlay
+  // drawer — it's always full-width there, so icon-only mode just hid every
+  // label with no way to read the menu.
+  const effectiveCollapsed = collapsed && !mobileOpen;
 
   return (
     <>
@@ -72,7 +76,7 @@ export function AppSidebar({
           </button>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
-          {!collapsed && (
+          {!effectiveCollapsed && (
             <div className="px-3 pb-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
               Main navigation
             </div>
@@ -86,7 +90,7 @@ export function AppSidebar({
                 href={entry.href}
                 onClick={onCloseMobile}
                 className={`flex items-center gap-2.5 rounded-lg border-l-2 px-3 py-2 text-sm font-semibold transition-colors ${
-                  collapsed ? "justify-center" : ""
+                  effectiveCollapsed ? "justify-center" : ""
                 } ${
                   active
                     ? "border-primary bg-primary/10 text-primary"
@@ -94,10 +98,10 @@ export function AppSidebar({
                 }`}
               >
                 <entry.icon className="h-4 w-4 shrink-0" />
-                {!collapsed && entry.label}
+                {!effectiveCollapsed && entry.label}
               </Link>
             );
-            if (!collapsed) return link;
+            if (!effectiveCollapsed) return link;
             return (
               <Tooltip key={entry.href}>
                 <TooltipTrigger render={link} />
@@ -107,7 +111,7 @@ export function AppSidebar({
           })}
         </nav>
         <div className="border-t border-border p-3">
-          {collapsed ? (
+          {effectiveCollapsed ? (
             <Tooltip>
               <TooltipTrigger
                 render={

@@ -146,15 +146,18 @@ export default async function TransactionsPage({
         </Suspense>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <StatusTabs active={activeStatus} range={activeRange} from={from} to={to} />
-        <DateRangeFilter
-          basePath="/transactions"
-          extraParams={activeStatus !== "all" ? { status: activeStatus } : {}}
-          range={activeRange}
-          from={from}
-          to={to}
-        />
+        <div className="shrink-0 self-start sm:self-auto">
+          <DateRangeFilter
+            basePath="/transactions"
+            extraParams={activeStatus !== "all" ? { status: activeStatus } : {}}
+            range={activeRange}
+            from={from}
+            to={to}
+            align="auto"
+          />
+        </div>
       </div>
 
       <Suspense key={`${activeStatus}-${page}-${activeRange}-${from}-${to}`} fallback={<TableSkeleton />}>
