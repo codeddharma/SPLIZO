@@ -1,12 +1,12 @@
 /**
  * Splizo cartoon reel assembler.
  *
- * Takes four Gemini-generated panels from brand/cartoon/<reel>/p1..p4.png and
+ * Takes four Gemini-generated panels from brand/cartoon/<part>/p1..pN.png and
  * turns them into a 1080x1920 MP4: a slow zoom on each panel, dialogue that
  * pops in as chat-style cards (left or right, matching where the speaker sits
  * in the panel), a caption chip, and a branded end card.
  *
- *   node brand/build-cartoon-reel.mjs reel1
+ *   node brand/build-cartoon-reel.mjs part1
  */
 import sharp from "sharp";
 import { execFile } from "node:child_process";
@@ -35,18 +35,57 @@ const FPS = 30;
 const M = 64; // side margin for cards
 
 /* ── The scripts ──────────────────────────────────────────────────
- * `side` puts a speaker's card on the side of the frame they sit on,
- * so the conversation reads like a chat. `big` is a centred line for
- * panels with nobody in them.
+ * The real story: Priya and Rohan, married February 2026, hometown Anand,
+ * living in Ahmedabad. Rohan had the idea; Priya left her job and built it.
+ *
+ * `side` puts a speaker's card on the side of the frame they stand on, so
+ * the conversation reads like a chat. `big` is a centred line for panels
+ * with nobody speaking. Lines are kept short because AI voices stay
+ * natural for one sentence and drift over three.
  * ---------------------------------------------------------------- */
 const PRIYA = { who: "PRIYA", side: "left" };
 const ROHAN = { who: "ROHAN", side: "right" };
+const BUNTY = { who: "BUNTY", side: "right" };
 
 const REELS = {
-  reel1: {
-    out: "cartoon-1-diary",
+  part1: {
+    out: "splizo-part-1-shaadi",
     panels: [
-      { caption: "MONTH END", lines: [{ ...PRIYA, text: "Is mahine ₹12,000 kahan gaye?" }] },
+      {
+        caption: "FEBRUARY 2026",
+        lines: [
+          { ...PRIYA, text: "Sab set hai na?" },
+          { ...ROHAN, text: "Bilkul." },
+        ],
+      },
+      {
+        caption: "ANAND → AHMEDABAD",
+        lines: [
+          { ...ROHAN, text: "Ghar Anand mein. Hum yahan." },
+          { ...PRIYA, text: "Dono sambhalne honge." },
+        ],
+      },
+      {
+        lines: [
+          { ...PRIYA, text: "Mera account, tera account, joint account." },
+          { ...ROHAN, text: "Aur chaar card." },
+        ],
+      },
+      {
+        lines: [
+          { ...ROHAN, text: "Mummy-papa ko bhej diya." },
+          { ...PRIYA, text: "Maine ghar ka saaman liya." },
+          { ...ROHAN, text: "Likha kisne?" },
+        ],
+      },
+    ],
+    end: { kicker: "PART 1", head: ["Hisaab kaun", "rakhega?"], foot: "PART 2 · @SPLIZO" },
+  },
+
+  part2: {
+    out: "splizo-part-2-notebook",
+    panels: [
+      { caption: "MARCH", lines: [{ ...PRIYA, text: "Ab se sab likhenge." }] },
       {
         lines: [
           { ...ROHAN, text: "Grocery... aur Swiggy bhi." },
@@ -54,56 +93,70 @@ const REELS = {
           { ...ROHAN, text: "Yaad nahi." },
         ],
       },
-      { caption: "DIARY, PAGE 14", lines: [{ big: true, text: "Total: ???" }] },
+      {
+        caption: "3 HAFTE BAAD",
+        lines: [{ big: true, text: "Cash wale?\nBhool gaye." }],
+      },
       {
         lines: [
-          { ...ROHAN, text: "Tumne likha kyun nahi?" },
-          { ...PRIYA, text: "Tumne bataya kyun nahi?" },
+          { ...ROHAN, text: "Ab sab phone mein." },
+          { ...PRIYA, text: "847 screenshots. Kis cheez pe zyada gaya?" },
+          { ...ROHAN, text: "Pata nahi." },
         ],
       },
     ],
-    end: { kicker: "PART 1", head: ["Aapke ghar mein", "bhi aisa hota hai?"], foot: "PART 2 KAL · @SPLIZO" },
+    end: { kicker: "PART 2", head: ["Notebook fail.", "Phone fail."], foot: "PART 3 · @SPLIZO" },
   },
-  reel2: {
-    out: "cartoon-2-phone",
+
+  part3: {
+    out: "splizo-part-3-idea",
     panels: [
-      { lines: [{ ...ROHAN, text: "Diary purani ho gayi. Ab sab phone mein!" }] },
-      { caption: "1 MAHINE BAAD", lines: [{ big: true, text: "847 screenshots.\n6 apps. 0 idea." }] },
+      { caption: "APRIL", lines: [{ ...BUNTY, text: "Bhai, thoda chahiye. Jaldi de dunga." }] },
       {
+        caption: "4 MAHINE BAAD",
         lines: [
-          { ...PRIYA, text: "Mere hisaab se ₹8,000." },
-          { ...ROHAN, text: "Mere mein ₹14,000!" },
+          { ...PRIYA, text: "Kitna diya tha?" },
+          { ...ROHAN, text: "Yaad nahi. Kisi ko bhi." },
         ],
       },
       {
         lines: [
-          { ...ROHAN, text: "Diary bhi fail. Phone bhi fail." },
-          { ...PRIYA, text: "Ab?" },
+          { ...ROHAN, text: "Ek app banate hain. Sab kuch ek jagah." },
+          { ...PRIYA, text: "Main banati hoon." },
         ],
+      },
+      {
+        caption: "RAAT 2 BAJE",
+        lines: [{ ...PRIYA, text: "Job chhod di. Ab yahi karna hai." }],
       },
     ],
-    end: { kicker: "PART 2", head: ["Diary fail.", "Phone fail."], foot: "PART 3 KAL · JAWAAB" },
+    end: { kicker: "PART 3", head: ["Ek hi jagah", "sab kuch."], foot: "PART 4 · DHANTERAS" },
   },
-  reel3: {
-    out: "cartoon-3-splizo",
+
+  part4: {
+    out: "splizo-part-4-splizo",
     panels: [
-      { caption: "RAAT 2 BAJE", lines: [{ ...ROHAN, text: "Main hi bana deta hoon." }] },
-      { caption: "KUCH HAFTE BAAD", lines: [] },
       {
         lines: [
-          { ...ROHAN, text: "Saare accounts. Dono ghar. Ek jagah." },
-          { ...PRIYA, text: "Aur Bunty ka udhaar bhi?" },
-          { ...ROHAN, text: "Wo bhi." },
+          { ...PRIYA, text: "Dekho." },
+          { ...ROHAN, text: "Sab kuch? Dono ghar? Udhaar bhi?" },
+          { ...PRIYA, text: "Sab." },
         ],
       },
+      { lines: [{ big: true, text: "Har rupaya.\nEk jagah." }] },
       {
         lines: [
-          { ...PRIYA, text: "Iska naam?" },
-          { ...ROHAN, text: "Splizo." },
+          { ...ROHAN, text: "Naam?" },
+          { ...PRIYA, text: "Splizo." },
         ],
       },
     ],
-    end: { kicker: "BETA · 2 OCTOBER 2026", head: ["Splizo."], sub: ["Poore ghar ka hisaab,", "ek hi jagah."], foot: "LINK IN BIO · @SPLIZO" },
+    end: {
+      kicker: "BETA LIVE · DHANTERAS",
+      head: ["Splizo."],
+      sub: ["Poore ghar ka hisaab,", "ek hi jagah."],
+      foot: "6 NOVEMBER · LINK IN BIO",
+    },
   },
 };
 
