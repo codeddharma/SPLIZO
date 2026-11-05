@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, MessageSquarePlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -37,6 +37,14 @@ export function ProfileMenu({ name }: { name: string }) {
             <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
               Profile
+            </Link>
+          }
+        />
+        <DropdownMenuItem
+          render={
+            <Link href="/feedback">
+              <MessageSquarePlus className="mr-2 h-4 w-4" />
+              Feedback
             </Link>
           }
         />

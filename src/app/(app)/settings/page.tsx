@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, isHouseholdOwner } from "@/lib/session";
 import { UpdateNameForm } from "@/components/settings/update-name-form";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { DangerZone } from "@/components/settings/danger-zone";
@@ -7,7 +7,7 @@ import { DangerZone } from "@/components/settings/danger-zone";
 export default async function SettingsPage() {
   const session = await requireSession();
 
-  const [user, otherUsersCount] = await Promise.all([
+  const [user, otherUsersCount, isOwner] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: session.user.id },
       select: { name: true },
@@ -15,6 +15,7 @@ export default async function SettingsPage() {
     prisma.user.count({
       where: { householdId: session.user.householdId, id: { not: session.user.id } },
     }),
+    isHouseholdOwner(session.user.id, session.user.householdId),
   ]);
 
   return (
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
       <div className="flex flex-col gap-4 sm:max-w-2xl">
         <UpdateNameForm name={user.name} />
         <ChangePasswordForm />
-        <DangerZone isSoleUser={otherUsersCount === 0} />
+        <DangerZone isSoleUser={otherUsersCount === 0} isOwner={isOwner} />
       </div>
     </div>
   );

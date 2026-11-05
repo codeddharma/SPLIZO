@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, isHouseholdOwner } from "@/lib/session";
 import { createHomeAction, deactivateHomeAction } from "@/lib/actions/reference-data-actions";
 import { SimpleTagManager } from "@/components/reference-data/simple-tag-manager";
 import { PeopleManager } from "@/components/reference-data/people-manager";
@@ -38,7 +38,7 @@ async function HouseholdPanel({
     );
   }
 
-  const [people, invites] = await Promise.all([
+  const [people, invites, isOwner] = await Promise.all([
     prisma.personTag.findMany({
       where: { householdId, isActive: true },
       orderBy: { name: "asc" },
@@ -48,10 +48,17 @@ async function HouseholdPanel({
       where: { householdId, status: "pending" },
       select: { id: true, personTagId: true, token: true },
     }),
+    isHouseholdOwner(currentUserId, householdId),
   ]);
 
   return (
-    <PeopleManager people={people} invites={invites} origin={origin} currentUserId={currentUserId} />
+    <PeopleManager
+      people={people}
+      invites={invites}
+      origin={origin}
+      currentUserId={currentUserId}
+      isOwner={isOwner}
+    />
   );
 }
 

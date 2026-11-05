@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DangerActionDialog } from "./danger-action-dialog";
 import { resetAccountAction, deleteAccountAction } from "@/lib/actions/settings-actions";
 
-export function DangerZone({ isSoleUser }: { isSoleUser: boolean }) {
+export function DangerZone({ isSoleUser, isOwner }: { isSoleUser: boolean; isOwner: boolean }) {
   const [modal, setModal] = useState<"reset" | "delete" | null>(null);
 
   return (
@@ -19,12 +19,24 @@ export function DangerZone({ isSoleUser }: { isSoleUser: boolean }) {
         <div>
           <div className="text-sm font-semibold">Reset account</div>
           <p className="text-xs text-muted-foreground">
-            Deletes every transaction, account, category, home, person, contact, and loan in this
-            household, then rebuilds the starter defaults —{" "}
-            {isSoleUser ? "your login stays active." : "everyone's login stays active."}
+            {isOwner ? (
+              <>
+                Deletes every transaction, account, category, home, person, contact, and loan in
+                this household, then rebuilds the starter defaults —{" "}
+                {isSoleUser ? "your login stays active." : "everyone's login stays active."}
+              </>
+            ) : (
+              "Only the household owner — whoever created it — can reset it."
+            )}
           </p>
         </div>
-        <Button type="button" variant="destructive" onClick={() => setModal("reset")} className="shrink-0">
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={() => setModal("reset")}
+          disabled={!isOwner}
+          className="shrink-0"
+        >
           Reset account
         </Button>
       </div>

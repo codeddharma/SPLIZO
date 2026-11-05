@@ -13,6 +13,7 @@ import {
   Settings,
   X,
   LogOut,
+  MessageSquarePlus,
 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { logoutAction } from "@/lib/actions/auth-actions";
@@ -110,7 +111,33 @@ export function AppSidebar({
             );
           })}
         </nav>
-        <div className="border-t border-border p-3">
+        <div className="flex flex-col gap-2 border-t border-border p-3">
+          {effectiveCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/feedback"
+                    onClick={onCloseMobile}
+                    className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  />
+                }
+              >
+                <MessageSquarePlus className="h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent side="right">Feedback</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Link
+              href="/feedback"
+              onClick={onCloseMobile}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <MessageSquarePlus className="h-4 w-4 shrink-0" />
+              Feedback
+            </Link>
+          )}
+
           {effectiveCollapsed ? (
             <Tooltip>
               <TooltipTrigger

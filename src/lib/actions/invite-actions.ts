@@ -3,7 +3,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { getHouseholdId, requireSession } from "@/lib/session";
+import { getHouseholdId, requireSession, isHouseholdOwner } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createInviteSchema, acceptInviteSchema } from "@/lib/validation/invite";
@@ -67,6 +67,9 @@ export async function removeAccessAction(formData: FormData) {
   const session = await requireSession();
   const householdId = session.user.householdId;
   const personTagId = String(formData.get("personTagId") ?? "");
+
+  // Only the household owner can remove someone else's access.
+  if (!(await isHouseholdOwner(session.user.id, householdId))) return;
 
   const personTag = await prisma.personTag.findFirst({ where: { id: personTagId, householdId } });
   if (!personTag?.userId) return;

@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, isHouseholdOwner } from "@/lib/session";
 import { signOut, unstable_update } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -134,7 +134,11 @@ export async function resetAccountAction(
 ): Promise<SettingsActionState> {
   const result = await verifyDangerZoneConfirmation(formData, "RESET");
   if ("error" in result) return result;
-  const { householdId } = result;
+  const { householdId, userId } = result;
+
+  if (!(await isHouseholdOwner(userId, householdId))) {
+    return { error: "Only the household owner can reset the account." };
+  }
 
   await prisma.$transaction(
     async (tx) => {

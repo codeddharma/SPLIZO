@@ -19,11 +19,13 @@ export function PeopleManager({
   invites,
   origin,
   currentUserId,
+  isOwner,
 }: {
   people: PersonRow[];
   invites: PendingInvite[];
   origin: string;
   currentUserId: string;
+  isOwner: boolean;
 }) {
   const inviteByPersonTagId = Object.fromEntries(invites.map((i) => [i.personTagId, i]));
 
@@ -76,6 +78,7 @@ export function PeopleManager({
                 isCurrentUser={person.user?.id === currentUserId}
                 pendingInvite={pendingInvite}
                 origin={origin}
+                isOwner={isOwner}
               />
             </div>
           );

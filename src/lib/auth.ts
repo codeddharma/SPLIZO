@@ -25,11 +25,17 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        });
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           householdId: user.householdId,
+          role: user.role,
         };
       },
     }),
@@ -39,6 +45,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       if (user) {
         token.userId = user.id;
         token.householdId = user.householdId;
+        token.role = user.role;
       }
       // Settings actions call unstable_update({ name }) after writing the DB
       // so the JWT (and every session read from it) picks up the change
@@ -52,6 +59,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       if (session.user && token.userId && token.householdId) {
         session.user.id = token.userId;
         session.user.householdId = token.householdId;
+        session.user.role = token.role ?? "user";
       }
       return session;
     },

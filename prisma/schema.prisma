@@ -25,6 +25,7 @@ model Household {
   loans         Loan[]
   invites       Invite[]
   savedCharts   SavedChart[]
+  feedback      Feedback[]
 
   @@map("households")
 }
@@ -39,6 +40,11 @@ model WaitlistSignup {
   @@map("waitlist_signups")
 }
 
+enum UserRole {
+  user
+  admin
+}
+
 model User {
   id           String    @id @default(cuid())
   householdId  String
@@ -46,10 +52,13 @@ model User {
   name            String
   email           String    @unique
   passwordHash    String
+  role            UserRole  @default(user)
   termsAcceptedAt DateTime
+  lastLoginAt     DateTime?
   createdAt       DateTime  @default(now())
 
   personTag PersonTag?
+  feedback  Feedback[]
 
   @@index([householdId])
   @@map("users")
@@ -407,4 +416,34 @@ model SavedChart {
 
   @@index([householdId])
   @@map("saved_charts")
+}
+
+enum FeedbackType {
+  feedback
+  question
+  review
+}
+
+enum FeedbackStatus {
+  open
+  seen
+  resolved
+}
+
+model Feedback {
+  id          String         @id @default(cuid())
+  householdId String
+  household   Household      @relation(fields: [householdId], references: [id])
+  userId      String
+  // Removing a user's login (e.g. "Remove access") shouldn't be blocked by
+  // feedback they filed — it isn't referenced anywhere else, so it goes too.
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        FeedbackType
+  message     String
+  status      FeedbackStatus @default(open)
+  createdAt   DateTime       @default(now())
+
+  @@index([householdId])
+  @@index([userId])
+  @@map("feedback")
 }

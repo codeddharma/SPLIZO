@@ -24,6 +24,7 @@ export function PersonRowActions({
   isCurrentUser,
   pendingInvite,
   origin,
+  isOwner,
 }: {
   personId: string;
   personName: string;
@@ -31,6 +32,7 @@ export function PersonRowActions({
   isCurrentUser: boolean;
   pendingInvite: { id: string; token: string } | null;
   origin: string;
+  isOwner: boolean;
 }) {
   const [modal, setModal] = useState<Modal>(null);
 
@@ -50,9 +52,11 @@ export function PersonRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {accessEmail && isCurrentUser ? null : accessEmail ? (
-            <DropdownMenuItem onClick={() => setModal("remove-access")}>
-              Remove access
-            </DropdownMenuItem>
+            isOwner && (
+              <DropdownMenuItem onClick={() => setModal("remove-access")}>
+                Remove access
+              </DropdownMenuItem>
+            )
           ) : pendingInvite ? (
             <>
               <DropdownMenuItem onClick={() => setModal("invite-link")}>
@@ -65,7 +69,7 @@ export function PersonRowActions({
           ) : (
             <DropdownMenuItem onClick={() => setModal("invite")}>Invite</DropdownMenuItem>
           )}
-          {accessEmail && isCurrentUser ? null : <DropdownMenuSeparator />}
+          {accessEmail && (isCurrentUser || !isOwner) ? null : <DropdownMenuSeparator />}
           <DropdownMenuItem variant="destructive" onClick={() => setModal("delete")}>
             Delete
           </DropdownMenuItem>
