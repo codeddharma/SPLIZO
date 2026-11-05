@@ -35,6 +35,7 @@ export function PersonRowActions({
   isOwner: boolean;
 }) {
   const [modal, setModal] = useState<Modal>(null);
+  const [newInviteToken, setNewInviteToken] = useState<string | null>(null);
 
   return (
     <>
@@ -80,17 +81,25 @@ export function PersonRowActions({
         <InviteDialog
           open
           onOpenChange={(o) => setModal(o ? "invite" : null)}
+          onInvited={(token) => {
+            setNewInviteToken(token);
+            setModal("invite-link");
+          }}
           personTagId={personId}
           personName={personName}
         />
       )}
 
-      {modal === "invite-link" && pendingInvite && (
+      {modal === "invite-link" && (pendingInvite || newInviteToken) && (
         <InviteLinkDialog
           open
-          onOpenChange={(o) => setModal(o ? "invite-link" : null)}
+          onOpenChange={(o) => {
+            setModal(o ? "invite-link" : null);
+            if (!o) setNewInviteToken(null);
+          }}
           personName={personName}
-          link={`${origin}/invite/${pendingInvite.token}`}
+          link={`${origin}/invite/${newInviteToken ?? pendingInvite?.token}`}
+          justSent={newInviteToken !== null}
         />
       )}
 

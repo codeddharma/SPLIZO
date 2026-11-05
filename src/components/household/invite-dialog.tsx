@@ -11,31 +11,36 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { createInviteAction, type InviteActionState } from "@/lib/actions/invite-actions";
+import {
+  createInviteAction,
+  type CreateInviteActionState,
+} from "@/lib/actions/invite-actions";
 
 export function InviteDialog({
   open,
   onOpenChange,
+  onInvited,
   personTagId,
   personName,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onInvited: (token: string) => void;
   personTagId: string;
   personName: string;
 }) {
-  const [state, formAction, pending] = useActionState<InviteActionState, FormData>(
+  const [state, formAction, pending] = useActionState<CreateInviteActionState, FormData>(
     createInviteAction,
     null
   );
   const wasPending = useRef(false);
 
   useEffect(() => {
-    if (wasPending.current && !pending && !state) {
-      onOpenChange(false);
+    if (wasPending.current && !pending && state && "token" in state) {
+      onInvited(state.token);
     }
     wasPending.current = pending;
-  }, [pending, state, onOpenChange]);
+  }, [pending, state, onInvited]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,7 +65,7 @@ export function InviteDialog({
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
             />
           </div>
-          {state?.error && <p className="text-xs text-expense">{state.error}</p>}
+          {state && "error" in state && <p className="text-xs text-expense">{state.error}</p>}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

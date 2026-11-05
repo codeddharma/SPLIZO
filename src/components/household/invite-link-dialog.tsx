@@ -16,19 +16,25 @@ export function InviteLinkDialog({
   onOpenChange,
   personName,
   link,
+  justSent = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   personName: string;
   link: string;
+  justSent?: boolean;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite link for {personName}</DialogTitle>
+          <DialogTitle>
+            {justSent ? `Invite ready for ${personName}` : `Invite link for ${personName}`}
+          </DialogTitle>
           <DialogDescription>
-            Share this link with them — it lets them set their own password.
+            {justSent
+              ? "We don't send the email yet — copy this link and send it to them yourself (WhatsApp, SMS, etc). It lets them set their own password."
+              : "Share this link with them — it lets them set their own password."}
           </DialogDescription>
         </DialogHeader>
         <CopyInviteLink link={link} />

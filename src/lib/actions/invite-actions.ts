@@ -11,11 +11,12 @@ import { createInviteSchema, acceptInviteSchema } from "@/lib/validation/invite"
 const INVITE_EXPIRY_DAYS = 7;
 
 export type InviteActionState = { error: string } | null;
+export type CreateInviteActionState = { error: string } | { token: string } | null;
 
 export async function createInviteAction(
-  _prev: InviteActionState,
+  _prev: CreateInviteActionState,
   formData: FormData
-): Promise<InviteActionState> {
+): Promise<CreateInviteActionState> {
   const householdId = await getHouseholdId();
   const personTagId = String(formData.get("personTagId") ?? "");
 
@@ -53,7 +54,7 @@ export async function createInviteAction(
   });
 
   revalidatePath("/household");
-  return null;
+  return { token };
 }
 
 export async function revokeInviteAction(formData: FormData) {
